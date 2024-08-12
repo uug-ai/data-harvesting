@@ -10,7 +10,7 @@ var = VariableClass()
 # Function to process the frame.
 
 
-def processFrame(MODEL, frame, video_out, condition):
+def processFrame(MODEL, frame, video_out):
     # Perform object classification on the frame.
     # persist=True -> The tracking results are stored in the model.
     # persist should be kept True, as this provides unique IDs for each detection.
