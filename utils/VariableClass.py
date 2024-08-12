@@ -79,9 +79,15 @@ class VariableClass:
         if os.getenv("MIN_DETECTIONS") is not None and os.getenv("MIN_DETECTIONS") != "":
             self.MIN_DETECTIONS = int(os.getenv("MIN_DETECTIONS", "5"))
 
+
         ALLOWED_CLASSIFICATIONS_STR = os.getenv("ALLOWED_CLASSIFICATIONS")
         self.ALLOWED_CLASSIFICATIONS = [
             int(item.strip()) for item in ALLOWED_CLASSIFICATIONS_STR.split(',')]
         TRANSLATED_CLASSIFICATIONS_STR = os.getenv("ALLOWED_CLASSIFICATIONS")
         self.TRANSLATED_CLASSIFICATIONS = [
             item.strip() for item in TRANSLATED_CLASSIFICATIONS_STR.split(',')]
+
+        # Roboflow parameters
+        self.ROBOFLOW_API_KEY = os.getenv("RBF_API_KEY")
+        self.ROBOFLOW_WORKSPACE = os.getenv("RBF_WORKSPACE")
+        self.ROBOFLOW_PROJECT = os.getenv("RBF_PROJECT")

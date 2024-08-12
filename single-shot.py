@@ -1,13 +1,18 @@
 # This script is used to look for objects under a specific condition (at least 5 persons etc)
 # The script reads a video from a message queue, classifies the objects in the video, and does a condition check.
 # If condition is met, the video is being forwarded to a remote vault.
-
+from roboflow_helper import RoboflowHelper
 # Local imports
 from utils.VariableClass import VariableClass
 from condition import processFrame
 
 # External imports
 import os
+from os.path import (
+    join as pjoin,
+    splitext as psplitext,
+    basename as pbasename)
+from datetime import datetime
 import cv2
 import time
 import torch
@@ -37,10 +42,14 @@ def init():
     # Open video-capture/recording using the video-path. Throw FileNotFoundError if cap is unable to open.
     if var.LOGGING:
         print(f'4) Opening video file: {var.MEDIA_SAVEPATH}')
+    if not os.path.exists(var.MEDIA_SAVEPATH):
+        raise FileNotFoundError(f'Cannot find {var.MEDIA_SAVEPATH}')
+    if not var.MEDIA_SAVEPATH.lower().endswith(('.mp4', '.avi', '.mov')):
+        raise TypeError('Unsupported file format! Only support videos with .mp4, .avi, .mov extensions')
     cap = cv2.VideoCapture(var.MEDIA_SAVEPATH)
     if not cap.isOpened():
-        FileNotFoundError('Unable to open video file')
-
+        raise FileNotFoundError('Unable to open video file')
+    video_out = None
     # Initialize the video-writer if the SAVE_VIDEO is set to True.
     if var.SAVE_VIDEO:
         fourcc = cv2.VideoWriter.fourcc(*'avc1')
@@ -72,6 +81,12 @@ def init():
         total_time_preprocessing += time.time() - start_time_preprocessing
         start_time_processing = time.time()
 
+    first_frame = True
+    result_dir_path = pjoin(os.getcwd(), f'out_data/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}')
+    image_dir_path = pjoin(result_dir_path, 'images')
+    label_dir_path = pjoin(result_dir_path, 'labels')
+    yaml_path = pjoin(result_dir_path, 'data.yaml')
+
     while (predicted_frames < var.MAX_NUMBER_OF_PREDICTIONS) and (frame_number < MAX_FRAME_NUMBER):
 
         # Read the frame from the video-capture.
@@ -81,21 +96,39 @@ def init():
 
         # Check if the frame_number corresponds to a frame that should be classified.
         if frame_number > 0 and frame_skip_factor > 0 and frame_number % frame_skip_factor == 0:
+            print(f'Processing frame: {predicted_frames}')
+            frame, total_time_class_prediction, condition_met, labels_and_boxes = processFrame(
+                MODEL, frame, video_out, result_dir_path)
 
-            frame, total_time_class_prediction, conditionMet, labelsAndBoxes = processFrame(
-                MODEL, frame, video_out)
+            # Create new directory to save frames, labels and boxes for when the first frame met the condition
+            if predicted_frames == 0 and condition_met:
+                os.makedirs(f'{image_dir_path}', exist_ok=True)
+                os.makedirs(f'{label_dir_path}', exist_ok=True)
+            if condition_met:
+                print("Saving frame, labels and boxes")
+                # Save original frame
+                cv2.imwrite(f'{image_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.png', frame)
 
-            if conditionMet:
-                print(
-                    "Condition met, stopping the video loop, and send it to the data science platform..")
-                # @TODO: Send to datascience platform
-                # Implement logic to send to Roboflow or other data annotation tool.
-                break
+                # Save labels and boxes
+                with open(f'{label_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.txt', 'w') as my_file:
+                    my_file.write(labels_and_boxes)
 
+                # At the very last frame, create yaml file
+                if predicted_frames == var.MAX_NUMBER_OF_PREDICTIONS - 1 or frame_number == MAX_FRAME_NUMBER - 1:
+                    # Create yaml file
+                    create_yaml(yaml_path)
             # Increase the frame_number and predicted_frames by one.
             predicted_frames += 1
 
         frame_number += 1
+
+    # Upload to roboflow after processing frames if any
+    if os.path.exists(result_dir_path):
+        rb = RoboflowHelper()
+        if rb:
+            rb.upload_dataset(result_dir_path)
+    else:
+        print('Nothing to upload!!')
 
     if var.TIME_VERBOSE:
         total_time_processing += time.time() - start_time_processing
@@ -124,8 +157,13 @@ def init():
 
     video_out.release() if var.SAVE_VIDEO else None
     cap.release()
-    cv2.destroyAllWindows()
+    if var.PLOT:
+        cv2.destroyAllWindows()
 
+def create_yaml(file_path):
+    with open(file_path, 'w') as my_file:
+        content = 'names:\n- Person\n- Head\n- Helmet\nnc: 3' # class mapping for helmet dection project
+        my_file.write(content)
 
 # Run the init function.
 init()
