@@ -1,0 +1,8 @@
+.venv
+venv
+data/input/*
+data/output/*
+utils/__pycache__
+run.sh
+data/video
+.env.production

@@ -1,0 +1,4 @@
+{
+    "editor.experimental.asyncTokenizationLogging": true,
+    "editor.experimental.asyncTokenization": false
+}
