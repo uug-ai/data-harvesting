@@ -1,6 +1,8 @@
 # This script is used to look for objects under a specific condition (at least 5 persons etc)
 # The script reads a video from a message queue, classifies the objects in the video, and does a condition check.
 # If condition is met, the video is being forwarded to a remote vault.
+import ultralytics.nn.tasks
+
 from roboflow_helper import RoboflowHelper
 # Local imports
 from utils.VariableClass import VariableClass
@@ -36,6 +38,9 @@ def init():
     # initialise the yolo model, additionally use the device parameter to specify the device to run the model on.
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     MODEL = YOLO(var.MODEL_NAME).to(device)
+    MODEL2 = None
+    if var.MODEL_NAME_2:
+        MODEL2 = YOLO(var.MODEL_NAME_2).to(device)
     if var.LOGGING:
         print(f'3) Using device: {device}')
 
@@ -81,8 +86,9 @@ def init():
         total_time_preprocessing += time.time() - start_time_preprocessing
         start_time_processing = time.time()
 
-    first_frame = True
-    result_dir_path = pjoin(os.getcwd(), f'out_data/{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}')
+    skip_frames_counter = 0
+
+    result_dir_path = pjoin(pjoin(os.getcwd(), 'out_data'), f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}')
     image_dir_path = pjoin(result_dir_path, 'images')
     label_dir_path = pjoin(result_dir_path, 'labels')
     yaml_path = pjoin(result_dir_path, 'data.yaml')
@@ -94,36 +100,44 @@ def init():
         if not success:
             break
 
+        # Check if we need to skip the current frame due to the skip_frames_counter.
+        if skip_frames_counter > 0:
+            skip_frames_counter -= 1
+            frame_number += 1
+            continue
+
         # Check if the frame_number corresponds to a frame that should be classified.
         if frame_number > 0 and frame_skip_factor > 0 and frame_number % frame_skip_factor == 0:
-            print(f'Processing frame: {predicted_frames}')
             frame, total_time_class_prediction, condition_met, labels_and_boxes = processFrame(
-                MODEL, frame, video_out, result_dir_path)
+                MODEL, MODEL2, frame, video_out, result_dir_path)
 
             # Create new directory to save frames, labels and boxes for when the first frame met the condition
             if predicted_frames == 0 and condition_met:
                 os.makedirs(f'{image_dir_path}', exist_ok=True)
                 os.makedirs(f'{label_dir_path}', exist_ok=True)
             if condition_met:
-                print("Saving frame, labels and boxes")
+                print(f'Processing frame: {predicted_frames}')
                 # Save original frame
                 cv2.imwrite(f'{image_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.png', frame)
-
+                print("Saving frame, labels and boxes")
                 # Save labels and boxes
                 with open(f'{label_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.txt', 'w') as my_file:
                     my_file.write(labels_and_boxes)
 
-                # At the very last frame, create yaml file
-                if predicted_frames == var.MAX_NUMBER_OF_PREDICTIONS - 1 or frame_number == MAX_FRAME_NUMBER - 1:
-                    # Create yaml file
-                    create_yaml(yaml_path)
-            # Increase the frame_number and predicted_frames by one.
-            predicted_frames += 1
+                # Set the skip_frames_counter to 50 to skip the next 50 frames.
+                skip_frames_counter = 50
+
+                # Increase the frame_number and predicted_frames by one.
+                predicted_frames += 1
 
         frame_number += 1
 
+    # Create yaml file afterward
+    label_names = [name for name in list(MODEL.names.values())]
+    create_yaml(yaml_path, label_names)
+
     # Upload to roboflow after processing frames if any
-    if os.path.exists(result_dir_path):
+    if os.path.exists(result_dir_path) and var.RBF_UPLOAD:
         rb = RoboflowHelper()
         if rb:
             rb.upload_dataset(result_dir_path)
@@ -160,9 +174,12 @@ def init():
     if var.PLOT:
         cv2.destroyAllWindows()
 
-def create_yaml(file_path):
+def create_yaml(file_path, label_names):
     with open(file_path, 'w') as my_file:
-        content = 'names:\n- Person\n- Head\n- Helmet\nnc: 3' # class mapping for helmet dection project
+        content ='names:\n'
+        for name in label_names:
+            content += f'- {name}\n' # class mapping for helmet dection project
+        content += f'nc: {len(label_names)}'
         my_file.write(content)
 
 # Run the init function.

@@ -18,6 +18,7 @@ class VariableClass:
         # Model parameters
         self.MODEL_NAME = os.getenv("MODEL_NAME")
         self.MEDIA_SAVEPATH = os.getenv("MEDIA_SAVEPATH")
+        self.MODEL_NAME_2 = os.getenv("MODEL_NAME_2")
 
         # Queue parameters
         self.QUEUE_NAME = os.getenv("QUEUE_NAME")
@@ -91,3 +92,4 @@ class VariableClass:
         self.ROBOFLOW_API_KEY = os.getenv("RBF_API_KEY")
         self.ROBOFLOW_WORKSPACE = os.getenv("RBF_WORKSPACE")
         self.ROBOFLOW_PROJECT = os.getenv("RBF_PROJECT")
+        self.RBF_UPLOAD = os.getenv("RBF_UPLOAD") == "True"
