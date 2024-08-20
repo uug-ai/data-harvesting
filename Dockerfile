@@ -20,12 +20,15 @@ RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultral
 # Add yolov8n.pt model
 ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
 
+# Add helmet model
+COPY helmet_dectector_1k_16b_150e.pt /usr/src/ultralytics/
+
 # Copy requirements.txt including the needed python packages
 COPY requirements.txt /ml/requirements.txt
 
 # Upgrade pip and install pip packages
 RUN python3 -m pip install --upgrade pip wheel && \
-    python3 -m pip install --no-cache-dir -r /ml/requirements.txt 
+    python3 -m pip install --no-cache-dir -r /ml/requirements.txt
 
 # Create necessary directories
 RUN mkdir -p /ml/data/input /ml/data/output
@@ -40,7 +43,8 @@ COPY . .
 ENV MEDIA_SAVEPATH "/ml/data/input/input_video.mp4"
 
 # Model parameters
-ENV MODEL_NAME "yolov8n.pt"
+ENV MODEL_NAME: "helmet_dectector_1k_16b_150e.pt"
+ENV MODEL_NAME_2: "helmet_dectector_1k_16b_150e.pt"
 
 # Queue parameters
 ENV QUEUE_NAME ""
@@ -54,6 +58,12 @@ ENV QUEUE_PASSWORD ""
 ENV STORAGE_URI ""
 ENV STORAGE_ACCESS_KEY ""
 ENV STORAGE_SECRET_KEY ""
+
+# Roboflow parameters
+ENV RBF_UPLOAD: ""
+ENV RBF_API_KEY: ""
+ENV RBF_WORKSPACE: ""
+ENV RBF_PROJECT: ""
 
 # Feature parameters
 ENV PLOT "False"
@@ -84,4 +94,3 @@ ENV ALLOWED_CLASSIFICATIONS "0, 1, 2, 3, 5, 7, 14, 15, 16, 24, 26, 28"
 
 # Run the application
 ENTRYPOINT ["python" , "queue_harvesting.py"]
-
