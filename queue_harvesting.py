@@ -164,12 +164,13 @@ def init():
                 if condition_met:
                     print(f'Processing frame: {predicted_frames}')
                     # Save original frame
+                    unix_time = int(time.time())
                     cv2.imwrite(
-                        f'{image_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.png',
+                        f'{image_dir_path}/{unix_time}.png',
                         frame)
                     print("Saving frame, labels and boxes")
                     # Save labels and boxes
-                    with open(f'{label_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.txt',
+                    with open(f'{label_dir_path}/{unix_time}.txt',
                               'w') as my_file:
                         my_file.write(labels_and_boxes)
 
