@@ -1,9 +1,8 @@
 # This script is used to look for objects under a specific condition (at least 5 persons etc)
 # The script reads a video from a message queue, classifies the objects in the video, and does a condition check.
 # If condition is met, the video is being forwarded to a remote vault.
-import ultralytics.nn.tasks
 
-from roboflow_helper import RoboflowHelper
+from connections.roboflow_helper import RoboflowHelper
 # Local imports
 from utils.VariableClass import VariableClass
 from condition import processFrame
@@ -88,7 +87,7 @@ def init():
 
     skip_frames_counter = 0
 
-    result_dir_path = pjoin(pjoin(os.getcwd(), 'out_data'), f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}')
+    result_dir_path = pjoin(pjoin(pjoin(os.getcwd(), 'data'), 'frames'), f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}')
     image_dir_path = pjoin(result_dir_path, 'images')
     label_dir_path = pjoin(result_dir_path, 'labels')
     yaml_path = pjoin(result_dir_path, 'data.yaml')
@@ -178,7 +177,7 @@ def create_yaml(file_path, label_names):
     with open(file_path, 'w') as my_file:
         content ='names:\n'
         for name in label_names:
-            content += f'- {name}\n' # class mapping for helmet dection project
+            content += f'- {name}\n' # class mapping for helmet detection project
         content += f'nc: {len(label_names)}'
         my_file.write(content)
 

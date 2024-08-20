@@ -66,10 +66,12 @@ class VariableClass:
             self.MAX_CLUSTERS = int(os.getenv("MAX_CLUSTERS"))
 
         # Classification parameters
-        self.CLASSIFICATION_FPS = int(os.getenv("CLASSIFICATION_FPS", "15"))
-        self.CLASSIFICATION_THRESHOLD = float(
+        if os.getenv("CLASSIFICATION_FPS") is not None and os.getenv("CLASSIFICATION_FPS") != "":
+            self.CLASSIFICATION_FPS = int(os.getenv("CLASSIFICATION_FPS", "15"))
+        if os.getenv("CLASSIFICATION_THRESHOLD") is not None and os.getenv("CLASSIFICATION_THRESHOLD") != "":
+            self.CLASSIFICATION_THRESHOLD = float(
             os.getenv("CLASSIFICATION_THRESHOLD"))
-        if os.getenv("MAX_NUMBER_OF_PREDICTIONS") is not None:
+        if os.getenv("MAX_NUMBER_OF_PREDICTIONS") is not None and os.getenv("CLASSIFICATION_FPS") != "":
             self.MAX_NUMBER_OF_PREDICTIONS = int(
                 os.getenv("MAX_NUMBER_OF_PREDICTIONS", "50"))
         if os.getenv("MIN_DISTANCE") is not None and os.getenv("MIN_DISTANCE") != "":

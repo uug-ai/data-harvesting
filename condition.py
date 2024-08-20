@@ -25,6 +25,7 @@ def processFrame(MODEL, MODEL2, frame, video_out='', frames_out=''):
         source=frame,
         persist=True,
         verbose=False,
+        iou=0.85,
         conf=var.CLASSIFICATION_THRESHOLD)
     results2 = None
     if MODEL2:
@@ -32,6 +33,7 @@ def processFrame(MODEL, MODEL2, frame, video_out='', frames_out=''):
             source=frame,
             persist=True,
             verbose=False,
+            iou=0.85,
             conf=var.CLASSIFICATION_THRESHOLD)
         results2 = results2[0]
 

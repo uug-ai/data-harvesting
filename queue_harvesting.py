@@ -2,6 +2,7 @@
 # The script reads a video from a message queue, classifies the objects in the video, and does a condition check.
 # If condition is met, the video is being forwarded to a remote vault.
 
+from connections.roboflow_helper import RoboflowHelper
 # Local imports
 from condition import processFrame
 from utils.VariableClass import VariableClass
@@ -9,6 +10,11 @@ from utils.ClassificationObject import ClassificationObject
 
 # External imports
 import os
+from os.path import (
+    join as pjoin,
+    splitext as psplitext,
+    basename as pbasename)
+from datetime import datetime
 import cv2
 import time
 import requests
@@ -76,25 +82,33 @@ def init():
         # initialise the yolo model, additionally use the device parameter to specify the device to run the model on.
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         MODEL = YOLO(var.MODEL_NAME).to(device)
+        MODEL2 = None
+        if var.MODEL_NAME_2:
+            MODEL2 = YOLO(var.MODEL_NAME_2).to(device)
         if var.LOGGING:
             print(f'3) Using device: {device}')
 
         # Open video-capture/recording using the video-path. Throw FileNotFoundError if cap is unable to open.
         if var.LOGGING:
             print(f'4) Opening video file: {var.MEDIA_SAVEPATH}')
+        if not os.path.exists(var.MEDIA_SAVEPATH):
+            raise FileNotFoundError(f'Cannot find {var.MEDIA_SAVEPATH}')
+        if not var.MEDIA_SAVEPATH.lower().endswith(('.mp4', '.avi', '.mov')):
+            raise TypeError('Unsupported file format! Only support videos with .mp4, .avi, .mov extensions')
         cap = cv2.VideoCapture(var.MEDIA_SAVEPATH)
         if not cap.isOpened():
-            FileNotFoundError('Unable to open video file')
-
+            raise FileNotFoundError('Unable to open video file')
+        video_out = None
         # Initialize the video-writer if the SAVE_VIDEO is set to True.
-        fourcc = cv2.VideoWriter.fourcc(*'avc1')
-        video_out = cv2.VideoWriter(
-            filename=var.OUTPUT_MEDIA_SAVEPATH,
-            fourcc=fourcc,
-            fps=var.CLASSIFICATION_FPS,
-            frameSize=(int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                       int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        )
+        if var.SAVE_VIDEO:
+            fourcc = cv2.VideoWriter.fourcc(*'avc1')
+            video_out = cv2.VideoWriter(
+                filename=var.OUTPUT_MEDIA_SAVEPATH,
+                fourcc=fourcc,
+                fps=var.CLASSIFICATION_FPS,
+                frameSize=(int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                           int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            )
 
         # Initialize the classification process.
         # 2 lists are initialized:
@@ -117,6 +131,14 @@ def init():
             total_time_preprocessing += time.time() - start_time_preprocessing
             start_time_processing = time.time()
 
+        skip_frames_counter = 0
+
+        result_dir_path = pjoin(pjoin(pjoin(os.getcwd(), 'data'), 'frames'),
+                                f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}')
+        image_dir_path = pjoin(result_dir_path, 'images')
+        label_dir_path = pjoin(result_dir_path, 'labels')
+        yaml_path = pjoin(result_dir_path, 'data.yaml')
+
         while (predicted_frames < var.MAX_NUMBER_OF_PREDICTIONS) and (frame_number < MAX_FRAME_NUMBER):
 
             # Read the frame from the video-capture.
@@ -124,22 +146,52 @@ def init():
             if not success:
                 break
 
+            # Check if we need to skip the current frame due to the skip_frames_counter.
+            if skip_frames_counter > 0:
+                skip_frames_counter -= 1
+                frame_number += 1
+                continue
+
             # Check if the frame_number corresponds to a frame that should be classified.
             if frame_number > 0 and frame_skip_factor > 0 and frame_number % frame_skip_factor == 0:
+                frame, total_time_class_prediction, condition_met, labels_and_boxes = processFrame(
+                    MODEL, MODEL2, frame, video_out, result_dir_path)
 
-                frame, total_time_class_prediction, conditionMet, labelsAndBoxes = processFrame(
-                    MODEL, frame, video_out)
+                # Create new directory to save frames, labels and boxes for when the first frame met the condition
+                if predicted_frames == 0 and condition_met:
+                    os.makedirs(f'{image_dir_path}', exist_ok=True)
+                    os.makedirs(f'{label_dir_path}', exist_ok=True)
+                if condition_met:
+                    print(f'Processing frame: {predicted_frames}')
+                    # Save original frame
+                    cv2.imwrite(
+                        f'{image_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.png',
+                        frame)
+                    print("Saving frame, labels and boxes")
+                    # Save labels and boxes
+                    with open(f'{label_dir_path}/{psplitext(pbasename(var.MEDIA_SAVEPATH))[0]}_f{predicted_frames}.txt',
+                              'w') as my_file:
+                        my_file.write(labels_and_boxes)
 
-                if conditionMet:
-                    print("Condition met, stopping the video loop, and send it to the data science platform..")
-                    # @TODO: Send to datascience platform
-                    # Implement logic to send to Roboflow or other data annotation tool.
-                    break
+                    # Set the skip_frames_counter to 50 to skip the next 50 frames.
+                    skip_frames_counter = 50
 
-                # Increase the frame_number and predicted_frames by one.
-                predicted_frames += 1
+                    # Increase the frame_number and predicted_frames by one.
+                    predicted_frames += 1
 
             frame_number += 1
+
+        # Create yaml file afterward
+        # Upload to roboflow after processing frames if any
+        if os.path.exists(result_dir_path) and var.RBF_UPLOAD:
+            label_names = [name for name in list(MODEL.names.values())]
+            create_yaml(yaml_path, label_names)
+
+            rb = RoboflowHelper()
+            if rb:
+                rb.upload_dataset(result_dir_path)
+        else:
+            print('Nothing to upload!!')
 
         # We might remove the recording from the vault after analyzing it. (default is False)
         # This might be the case if we only need to create a dataset from the recording and do not need to store it.
@@ -188,10 +240,18 @@ def init():
             print('8) Releasing video writer and closing video capture')
             print("\n\n")
 
-        video_out.release()
+        video_out.release() if var.SAVE_VIDEO else None
         cap.release()
-        cv2.destroyAllWindows()
+        if var.PLOT:
+            cv2.destroyAllWindows()
 
+def create_yaml(file_path, label_names):
+    with open(file_path, 'w') as my_file:
+        content ='names:\n'
+        for name in label_names:
+            content += f'- {name}\n' # class mapping for helmet detection project
+        content += f'nc: {len(label_names)}'
+        my_file.write(content)
 
 # Run the init function.
 init()
