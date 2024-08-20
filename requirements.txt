@@ -55,3 +55,4 @@ urllib3==2.2.1
 uugai-python-color-prediction==3.0.0
 uugai-python-dynamic-queue==1.1.0
 uugai-python-kerberos-vault==1.2.0
+roboflow

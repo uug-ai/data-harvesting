@@ -43,7 +43,7 @@ ENV MEDIA_SAVEPATH "/ml/data/input/input_video.mp4"
 ENV MODEL_NAME "yolov8n.pt"
 
 # Queue parameters
-ENV QUEUE_NAME "" 
+ENV QUEUE_NAME ""
 ENV TARGET_QUEUE_NAME ""
 ENV QUEUE_EXCHANGE ""
 ENV QUEUE_HOST ""
@@ -83,6 +83,5 @@ ENV ALLOWED_CLASSIFICATIONS "0, 1, 2, 3, 5, 7, 14, 15, 16, 24, 26, 28"
 
 
 # Run the application
-ENTRYPOINT ["python" , "queue_filter.py"]
-
+ENTRYPOINT ["python" , "queue_harvesting.py"]
 
