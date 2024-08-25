@@ -7,6 +7,8 @@ from utils.VariableClass import VariableClass
 
 
 var = VariableClass()
+
+
 class RoboflowHelper:
     def __init__(self):
         self.agent, self.ws, self.project = self.__login__

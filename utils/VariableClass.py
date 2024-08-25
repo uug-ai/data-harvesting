@@ -19,6 +19,9 @@ class VariableClass:
         self.MODEL_NAME = os.getenv("MODEL_NAME")
         self.MEDIA_SAVEPATH = os.getenv("MEDIA_SAVEPATH")
         self.MODEL_NAME_2 = os.getenv("MODEL_NAME_2")
+        self.DATASET_FORMAT = os.getenv("DATASET_FORMAT")
+        self.MODEL_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_ALLOWED_CLASSES', '0').split(',')))
+        self.MODEL_2_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_2_ALLOWED_CLASSES', '0').split(',')))
 
         # Queue parameters
         self.QUEUE_NAME = os.getenv("QUEUE_NAME")
@@ -44,6 +47,7 @@ class VariableClass:
         self.CREATE_BBOX_FRAME = os.getenv("CREATE_BBOX_FRAME") == "True"
         self.SAVE_BBOX_FRAME = os.getenv("SAVE_BBOX_FRAME") == "True"
         self.BBOX_FRAME_SAVEPATH = os.getenv("BBOX_FRAME_SAVEPATH")
+        self.REMOVE_AFTER_PROCESSED = os.getenv("REMOVE_AFTER_PROCESSED") == "False"
         if self.SAVE_BBOX_FRAME:
             self.CREATE_BBOX_FRAME = True
 
@@ -81,7 +85,8 @@ class VariableClass:
                 os.getenv("MIN_STATIC_DISTANCE", "100"))
         if os.getenv("MIN_DETECTIONS") is not None and os.getenv("MIN_DETECTIONS") != "":
             self.MIN_DETECTIONS = int(os.getenv("MIN_DETECTIONS", "5"))
-
+        self.FRAMES_SKIP_AFTER_DETECT = int(os.getenv("FRAMES_SKIP_AFTER_DETECT", "50"))
+        self.IOU = float(os.getenv("IOU", "0.85"))
 
         ALLOWED_CLASSIFICATIONS_STR = os.getenv("ALLOWED_CLASSIFICATIONS")
         self.ALLOWED_CLASSIFICATIONS = [
