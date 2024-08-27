@@ -4,15 +4,8 @@
 from integrations.integration_factory import IntegrationFactory
 from projects.project_factory import ProjectFactory
 from services.harvest_service import HarvestService
-from integrations.roboflow_integration import RoboflowIntegration
-# Local imports
+
 from utils.VariableClass import VariableClass
-
-# External imports
-import os
-
-import cv2
-
 from utils.time_verbose_object import TimeVerbose
 
 # Initialize the VariableClass object, which contains all the necessary environment variables.
