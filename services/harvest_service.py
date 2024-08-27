@@ -1,6 +1,7 @@
 from uugai_python_dynamic_queue.MessageBrokers import RabbitMQ
 from uugai_python_kerberos_vault.KerberosVault import KerberosVault
 
+from exports.export_factory import ExportFactory
 from services.iharvest_service import IHarvestService
 from utils.VariableClass import VariableClass
 import time
@@ -25,8 +26,13 @@ class HarvestService(IHarvestService):
         """
         self.rabbitmq = None
         self.vault = None
+        self.frame_number = 0
+        self.predicted_frames = 0
+        self.max_frame_number = None
+        self.frame_skip_factor = 0
         # Initialize the VariableClass object, which contains all the necessary environment variables.
         self._var = VariableClass()
+        self._save_format = ExportFactory().init(proj_name='helmet_detection')
 
     def connect(self, *agents):
         """
@@ -81,7 +87,7 @@ class HarvestService(IHarvestService):
             media_savepath=self._var.MEDIA_SAVEPATH)
         return message
 
-    def process_from_vault(self, media_key, provider):
+    def delete_media(self, media_key, provider):
         """
         See iharvest_service.py
         """
@@ -151,9 +157,44 @@ class HarvestService(IHarvestService):
         #     )
         self.frame_number = 0
         self.predicted_frames = 0
+        self.max_frame_number = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+        self.frame_skip_factor = int(
+            cap.get(cv2.CAP_PROP_FPS) / self._var.CLASSIFICATION_FPS)
         return cap
 
-    def get_video_frame(self, cap: cv2.VideoCapture, skip_frames_counter):
+    def process(self, cap, model1, model2, condition_func, mapping):
+        if self.max_frame_number > 0:
+            skip_frames_counter = 0
+
+            # Create save dir and yaml file
+            success = self._save_format.initialize_save_dir()
+            if success and self._var.DATASET_FORMAT == 'roboflow':
+                self._save_format.create_yaml(model2)
+
+            while (self.predicted_frames < self._var.MAX_NUMBER_OF_PREDICTIONS) and (
+                    self.frame_number < self.max_frame_number):
+                # Read the frame from the video-capture.
+                success, frame, skip_frames_counter = self.get_frame(cap, skip_frames_counter)
+                # Increment frame number after processing
+                self.frame_number += 1
+
+                if not success:
+                    break
+
+                if frame is None:
+                    continue
+
+                # Process frame
+                skip_frames_counter = self.predict_frame(
+                    model1,
+                    model2,
+                    frame,
+                    condition_func,
+                    mapping,
+                    skip_frames_counter)
+        return self._save_format.result_dir_path
+
+    def get_frame(self, cap: cv2.VideoCapture, skip_frames_counter):
         """
         See iharvest_service.py
 
@@ -163,48 +204,36 @@ class HarvestService(IHarvestService):
         """
         # Check if we need to skip the current frame due to the skip_frames_counter.
         if skip_frames_counter > 0:
-            skip_frames_counter -= 1
-            self.frame_number += 1
-            return True, None, skip_frames_counter
+            return True, None, skip_frames_counter - 1
+
         success, frame = cap.read()
         if not success:
             return False, None, skip_frames_counter
+
         return True, frame, skip_frames_counter
 
-    def process_frame(self, frame_skip_factor, skip_frames_counter, model1, model2, condition_func, mapping,
-                      result_dir_path, image_dir_path, label_dir_path, frame, video_out):
+    def predict_frame(
+            self,
+            model1,
+            model2,
+            frame,
+            condition_func,
+            mapping,
+            skip_frames_counter):
         """
         See iharvest_service.py
 
         Returns:
             int: The updated skip frames counter.
         """
-        if self.frame_number > 0 and frame_skip_factor > 0 and self.frame_number % frame_skip_factor == 0:
+        if self.frame_number > 0 and self.frame_skip_factor > 0 and self.frame_number % self.frame_skip_factor == 0:
             frame, total_time_class_prediction, condition_met, labels_and_boxes = con_process_frame(
-                model1, model2, frame, condition_func, mapping, video_out, result_dir_path)
+                model1, model2, frame, condition_func, mapping)
 
-            # Create new directory to save frames, labels and boxes for when the first frame met the condition
-            if self.predicted_frames == 0 and condition_met:
-                os.makedirs(f'{image_dir_path}', exist_ok=True)
-                os.makedirs(f'{label_dir_path}', exist_ok=True)
             if condition_met:
-                print(f'5.1. Processing frame: {self.predicted_frames}')
-                # Save original frame
-                unix_time = int(time.time())
-                cv2.imwrite(
-                    f'{image_dir_path}/{unix_time}.png',
-                    frame)
-                print("5.2. Saving frame, labels and boxes")
-                # Save labels and boxes
-                with open(f'{label_dir_path}/{unix_time}.txt',
-                          'w') as my_file:
-                    my_file.write(labels_and_boxes)
-
-                # Set the skip_frames_counter to 50 to skip the next 50 frames.
+                self.predicted_frames = self._save_format.save_frame(frame, self.predicted_frames, cv2,
+                                                                     labels_and_boxes)
                 skip_frames_counter = 50
-
-                # Increase the frame_number and predicted_frames by one.
-                self.predicted_frames += 1
         print(f'Currently in frame: {self.frame_number}')
         self.frame_number += 1
         return skip_frames_counter

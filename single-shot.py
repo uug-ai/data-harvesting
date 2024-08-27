@@ -4,7 +4,7 @@
 
 from projects.project_factory import ProjectFactory
 from services.harvest_service import HarvestService
-from integrations.roboflow_helper import RoboflowHelper
+from integrations.roboflow_integration import RoboflowIntegration
 # Local imports
 from utils.VariableClass import VariableClass
 
@@ -82,7 +82,7 @@ def init():
 
     # Upload to roboflow after processing frames if any
     if os.path.exists(result_dir_path) and var.RBF_UPLOAD:
-        rb = RoboflowHelper()
+        rb = RoboflowIntegration()
         if rb:
             rb.upload_dataset(result_dir_path)
     else:

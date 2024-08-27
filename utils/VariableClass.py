@@ -19,9 +19,12 @@ class VariableClass:
         self.MODEL_NAME = os.getenv("MODEL_NAME")
         self.MEDIA_SAVEPATH = os.getenv("MEDIA_SAVEPATH")
         self.MODEL_NAME_2 = os.getenv("MODEL_NAME_2")
-        self.DATASET_FORMAT = os.getenv("DATASET_FORMAT")
         self.MODEL_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_ALLOWED_CLASSES', '0').split(',')))
         self.MODEL_2_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_2_ALLOWED_CLASSES', '0').split(',')))
+
+        # Model parameters
+        self.DATASET_FORMAT = os.getenv("DATASET_FORMAT")
+        self.DATASET_VERSION = os.getenv("DATASET_VERSION")
 
         # Queue parameters
         self.QUEUE_NAME = os.getenv("QUEUE_NAME")
@@ -58,6 +61,7 @@ class VariableClass:
             self.CREATE_RETURN_JSON = True
 
         self.SAVE_VIDEO = os.getenv("SAVE_VIDEO") == "True"
+        self.SAVE_FRAMES = os.getenv("SAVE_FRAMES") == "True"
         self.OUTPUT_MEDIA_SAVEPATH = os.getenv("OUTPUT_MEDIA_SAVEPATH")
 
         self.FIND_DOMINANT_COLORS = os.getenv("FIND_DOMINANT_COLORS") == "True"
@@ -74,7 +78,7 @@ class VariableClass:
             self.CLASSIFICATION_FPS = int(os.getenv("CLASSIFICATION_FPS", "15"))
         if os.getenv("CLASSIFICATION_THRESHOLD") is not None and os.getenv("CLASSIFICATION_THRESHOLD") != "":
             self.CLASSIFICATION_THRESHOLD = float(
-            os.getenv("CLASSIFICATION_THRESHOLD"))
+                os.getenv("CLASSIFICATION_THRESHOLD"))
         if os.getenv("MAX_NUMBER_OF_PREDICTIONS") is not None and os.getenv("CLASSIFICATION_FPS") != "":
             self.MAX_NUMBER_OF_PREDICTIONS = int(
                 os.getenv("MAX_NUMBER_OF_PREDICTIONS", "50"))
@@ -95,8 +99,18 @@ class VariableClass:
         self.TRANSLATED_CLASSIFICATIONS = [
             item.strip() for item in TRANSLATED_CLASSIFICATIONS_STR.split(',')]
 
+        # Integration parameters
+        self.INTEGRATION_NAME = os.getenv("INTEGRATION_NAME")
+
         # Roboflow parameters
         self.ROBOFLOW_API_KEY = os.getenv("RBF_API_KEY")
         self.ROBOFLOW_WORKSPACE = os.getenv("RBF_WORKSPACE")
         self.ROBOFLOW_PROJECT = os.getenv("RBF_PROJECT")
-        self.RBF_UPLOAD = os.getenv("RBF_UPLOAD") == "True"
+        self.DATASET_UPLOAD = os.getenv("DATASET_UPLOAD") == "True"
+
+        # S3 parameters
+        self.S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+        self.S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+        self.S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+        self.S3_BUCKET = os.getenv("S3_BUCKET")
+
