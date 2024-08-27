@@ -36,8 +36,6 @@ spec:
               value: "1"
             - name: DATASET_UPLOAD
               value: "True"
-            - name: MODEL_NAME
-              value: "yolov8n.pt"
 
             - name: QUEUE_NAME
               value: "data-harvesting" # This is the topic of kafka we will read messages from.
