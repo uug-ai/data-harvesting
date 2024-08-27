@@ -50,9 +50,9 @@ spec:
             - name: STORAGE_URI
               value: "http://vault-lb.kerberos-vault/api"
             - name: STORAGE_ACCESS_KEY
-              value: "YOUR_KEY"
+              value: "52gyELgxutOXUWhF"
             - name: STORAGE_SECRET_KEY
-              value: "YOUR_SECRET_KEY"
+              value: "k8DrcB@hQ5XfxDENzDKcnkxBHx"
 
             - name: INTEGRATION_NAME
               value: "s3"
