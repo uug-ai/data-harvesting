@@ -19,6 +19,12 @@ class VariableClass:
         self.MODEL_NAME = os.getenv("MODEL_NAME")
         self.MEDIA_SAVEPATH = os.getenv("MEDIA_SAVEPATH")
         self.MODEL_NAME_2 = os.getenv("MODEL_NAME_2")
+        self.MODEL_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_ALLOWED_CLASSES', '0').split(',')))
+        self.MODEL_2_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_2_ALLOWED_CLASSES', '0').split(',')))
+
+        # Model parameters
+        self.DATASET_FORMAT = os.getenv("DATASET_FORMAT")
+        self.DATASET_VERSION = os.getenv("DATASET_VERSION")
 
         # Queue parameters
         self.QUEUE_NAME = os.getenv("QUEUE_NAME")
@@ -44,6 +50,7 @@ class VariableClass:
         self.CREATE_BBOX_FRAME = os.getenv("CREATE_BBOX_FRAME") == "True"
         self.SAVE_BBOX_FRAME = os.getenv("SAVE_BBOX_FRAME") == "True"
         self.BBOX_FRAME_SAVEPATH = os.getenv("BBOX_FRAME_SAVEPATH")
+        self.REMOVE_AFTER_PROCESSED = os.getenv("REMOVE_AFTER_PROCESSED") == "False"
         if self.SAVE_BBOX_FRAME:
             self.CREATE_BBOX_FRAME = True
 
@@ -54,6 +61,7 @@ class VariableClass:
             self.CREATE_RETURN_JSON = True
 
         self.SAVE_VIDEO = os.getenv("SAVE_VIDEO") == "True"
+        self.SAVE_FRAMES = os.getenv("SAVE_FRAMES") == "True"
         self.OUTPUT_MEDIA_SAVEPATH = os.getenv("OUTPUT_MEDIA_SAVEPATH")
 
         self.FIND_DOMINANT_COLORS = os.getenv("FIND_DOMINANT_COLORS") == "True"
@@ -70,7 +78,7 @@ class VariableClass:
             self.CLASSIFICATION_FPS = int(os.getenv("CLASSIFICATION_FPS", "15"))
         if os.getenv("CLASSIFICATION_THRESHOLD") is not None and os.getenv("CLASSIFICATION_THRESHOLD") != "":
             self.CLASSIFICATION_THRESHOLD = float(
-            os.getenv("CLASSIFICATION_THRESHOLD"))
+                os.getenv("CLASSIFICATION_THRESHOLD"))
         if os.getenv("MAX_NUMBER_OF_PREDICTIONS") is not None and os.getenv("CLASSIFICATION_FPS") != "":
             self.MAX_NUMBER_OF_PREDICTIONS = int(
                 os.getenv("MAX_NUMBER_OF_PREDICTIONS", "50"))
@@ -81,7 +89,8 @@ class VariableClass:
                 os.getenv("MIN_STATIC_DISTANCE", "100"))
         if os.getenv("MIN_DETECTIONS") is not None and os.getenv("MIN_DETECTIONS") != "":
             self.MIN_DETECTIONS = int(os.getenv("MIN_DETECTIONS", "5"))
-
+        self.FRAMES_SKIP_AFTER_DETECT = int(os.getenv("FRAMES_SKIP_AFTER_DETECT", "50"))
+        self.IOU = float(os.getenv("IOU", "0.85"))
 
         ALLOWED_CLASSIFICATIONS_STR = os.getenv("ALLOWED_CLASSIFICATIONS")
         self.ALLOWED_CLASSIFICATIONS = [
@@ -90,8 +99,18 @@ class VariableClass:
         self.TRANSLATED_CLASSIFICATIONS = [
             item.strip() for item in TRANSLATED_CLASSIFICATIONS_STR.split(',')]
 
+        # Integration parameters
+        self.INTEGRATION_NAME = os.getenv("INTEGRATION_NAME")
+
         # Roboflow parameters
         self.ROBOFLOW_API_KEY = os.getenv("RBF_API_KEY")
         self.ROBOFLOW_WORKSPACE = os.getenv("RBF_WORKSPACE")
         self.ROBOFLOW_PROJECT = os.getenv("RBF_PROJECT")
-        self.RBF_UPLOAD = os.getenv("RBF_UPLOAD") == "True"
+        self.DATASET_UPLOAD = os.getenv("DATASET_UPLOAD") == "True"
+
+        # S3 parameters
+        self.S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+        self.S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+        self.S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+        self.S3_BUCKET = os.getenv("S3_BUCKET")
+

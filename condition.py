@@ -1,4 +1,3 @@
-
 from utils.TranslateObject import translate
 from utils.VariableClass import VariableClass
 import cv2
@@ -7,10 +6,11 @@ import time
 # Initialize the VariableClass object, which contains all the necessary environment variables.
 var = VariableClass()
 
+
 # Function to process the frame.
 
 
-def processFrame(MODEL, MODEL2, frame, video_out='', frames_out=''):
+def process_frame(MODEL, MODEL2, frame, condition_func, mapping, video_out='', frames_out=''):
     # Perform object classification on the frame.
     # persist=True -> The tracking results are stored in the model.
     # persist should be kept True, as this provides unique IDs for each detection.
@@ -25,16 +25,18 @@ def processFrame(MODEL, MODEL2, frame, video_out='', frames_out=''):
         source=frame,
         persist=True,
         verbose=False,
-        iou=0.85,
-        conf=var.CLASSIFICATION_THRESHOLD)
+        iou=var.IOU,
+        conf=var.CLASSIFICATION_THRESHOLD,
+        classes=var.MODEL_ALLOWED_CLASSES)
     results2 = None
     if MODEL2:
         results2 = MODEL2.track(
             source=frame,
             persist=True,
             verbose=False,
-            iou=0.85,
-            conf=var.CLASSIFICATION_THRESHOLD)
+            iou=var.IOU,
+            conf=var.CLASSIFICATION_THRESHOLD,
+            classes=var.MODEL_2_ALLOWED_CLASSES)
         results2 = results2[0]
 
     if var.TIME_VERBOSE:
@@ -46,31 +48,12 @@ def processFrame(MODEL, MODEL2, frame, video_out='', frames_out=''):
     # Check if the results are not None,
     #  Otherwise, the postprocessing should not be done.
     # Iterate over the detected objects and their masks.
-    results = results[0] # Pick the first element since it returned a list of Result not the object itself
+    results = results[0]  # Pick the first element since it returned a list of Result not the object itself
 
     annotated_frame = frame.copy()
 
     # Empty frame containing labels with bounding boxes
     labels_and_boxes = ''
-
-    # if results is not None:
-    #     # Using the results of the classification, we can verify if we have a condition met.
-    #     # We can look for example for people who are:
-    #     # - not wearing a helmet,
-    #     # - people with a blue shirt,
-    #     # - cars driving in the opposite direction,
-    #     # - etc.
-    #     # You are in the driving seat so you can write your custom code to detect the condition
-    #     # you are looking for.
-    #     if len(results.boxes) >= var.MIN_DETECTIONS: # If there are at least 5 boxes found (Could belong to either class)
-    #         print("Condition met, we are gathering the labels and boxes and return results")
-    #         # Extract label and boxes from result in YOLOv8 format
-    #         for cls_item, xywhn_item in zip(results.boxes.cls.tolist(), results.boxes.xywhn):
-    #             labels_and_boxes = labels_and_boxes + f'{int(cls_item)} {xywhn_item[0]} {xywhn_item[1]} {xywhn_item[2]} {xywhn_item[3]}\n'
-    #
-    #         return frame, total_time_class_prediction, True, labels_and_boxes
-    #     else:
-    #         print("Condition not met, skipping frame")
 
     if results is not None or results2 is not None:
         combined_results = []
@@ -80,28 +63,33 @@ def processFrame(MODEL, MODEL2, frame, video_out='', frames_out=''):
         # Valid image need to:
         # + Have at least MIN_DETECTIONS objects detected:
         # + Have to have helmet (since we are lacking of helmet dataset)
-        # + Number of helmet and person detected are equal (make sure every person wearing a helmet is detected)
-        if (len(results.boxes) > 0
-                and len(results2.boxes) > 0
-                and (any(box.cls == 1 for box in results2.boxes)
-                     or any(box.cls == 2 for box in results.boxes))
-                and sum(box.cls == 1 for box in results.boxes) == sum(box.cls == 2 for box in results.boxes)):
-            for box1, box2 in zip(results.boxes, results2.boxes):
-                if box1.cls == box2.cls:
-                    avg_conf = (box1.conf + box2.conf) / 2
-                    if box1.conf >= box2.conf:
-                        combined_results.append((box1.xywhn, box1.cls, avg_conf))
-                    else:
-                        combined_results.append((box2.xywhn, box2.cls, avg_conf))
+        if condition_func(results, results2, mapping):
+            # Add labels and boxes of model 1 (add using mapping since we will store the label of model 2)
+            combined_results += [(box.xywhn, mapping[int(box.cls)], box.conf) for box in results.boxes]
 
-            # Add any remaining boxes from model 1 or model 2 if their counts are different
-            combined_results += [(box.xywhn, box.cls, box.conf) for box in results.boxes[len(combined_results):]]
-            combined_results += [(box.xywhn, box.cls, box.conf) for box in results2.boxes[len(combined_results):]]
+            # Add labels and boxes of model 2
+            combined_results += [(box2.xywhn, box2.cls, box2.conf) for box2 in results2.boxes]
 
-        if len(combined_results) >= var.MIN_DETECTIONS:  # If the combined result has at least 5 boxes found (Could belong to either class)
+            # sort results based on descending confidences
+            sorted_combined_results = sorted(combined_results, key=lambda x: x[2], reverse=True)
+
+            # Remove duplicates (if x and y coordinates of 2 boxes with the same class are < 0.01
+            # -> consider as duplication and remove
+            combined_results = []
+            for element in sorted_combined_results:
+                add_flag = True
+                for res in combined_results:
+                    if res[1] == element[1]:
+                        if (abs(res[0][0][0] - element[0][0][0]) < 0.01
+                                and (abs(res[0][0][1] - element[0][0][1]) < 0.01)):
+                            add_flag = False
+                if add_flag:
+                    combined_results.append(element)
+
+        if len(combined_results) >= var.MIN_DETECTIONS:  # If the combined result has at least MIN_DETECTIONS boxes found (Could belong to either class)
             print("Condition met, we are gathering the labels and boxes and return results")
-            for xywhn, cls, conf in combined_results:
-                labels_and_boxes += f'{int(cls[0])} {xywhn[0, 0].item()} {xywhn[0, 1].item()} {xywhn[0, 2].item()} {xywhn[0, 3].item()}\n'
+            for xywhn, cls, _ in combined_results:
+                labels_and_boxes += f'{int(cls)} {xywhn[0, 0].item()} {xywhn[0, 1].item()} {xywhn[0, 2].item()} {xywhn[0, 3].item()}\n'
             return frame, total_time_class_prediction, True, labels_and_boxes
 
         # Annotate the frame with the classification objects.
@@ -132,15 +120,16 @@ def processFrame(MODEL, MODEL2, frame, video_out='', frames_out=''):
 
     # Depending on the SAVE_VIDEO or PLOT parameter, the frame is annotated.
     # This is done using a custom annotation function.
-    if var.SAVE_VIDEO or var.PLOT:
-
-        # Show the annotated frame if the PLOT parameter is set to True.
-        cv2.imshow("YOLOv8 Tracking",
-                   annotated_frame) if var.PLOT else None
-        cv2.waitKey(1) if var.PLOT else None
-
-        # Write the annotated frame to the video-writer if the SAVE_VIDEO parameter is set to True.
-        video_out.write(
-            annotated_frame) if var.SAVE_VIDEO else None
+    # TODO: Fix this later (for some reasons code has error but vid is still saved)
+    # if var.SAVE_VIDEO or var.PLOT:
+    #
+    #     # Show the annotated frame if the PLOT parameter is set to True.
+    #     cv2.imshow("YOLOv8 Tracking",
+    #                annotated_frame) if var.PLOT else None
+    #     cv2.waitKey(1) if var.PLOT else None
+    #
+    #     # Write the annotated frame to the video-writer if the SAVE_VIDEO parameter is set to True.
+    #     video_out.write(
+    #         annotated_frame) if var.SAVE_VIDEO else None
 
     return frame, total_time_class_prediction, False, labels_and_boxes
