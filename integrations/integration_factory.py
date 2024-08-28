@@ -4,6 +4,9 @@ from utils.VariableClass import VariableClass
 
 
 class IntegrationFactory:
+    """
+    Integration Factory initializes specific integration types.
+    """
     def __init__(self):
         self._var = VariableClass()
         self.name = self._var.INTEGRATION_NAME

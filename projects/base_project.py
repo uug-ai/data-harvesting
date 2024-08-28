@@ -42,19 +42,3 @@ class BaseProject(IBaseProject):
         self.proj_dir = pjoin(_cur_dir, f'../data/{dir_name}')
         self.proj_dir = pabspath(self.proj_dir)  # normalise the link
         print(f'1. Created/Found project folder under {self.proj_dir} path')
-
-    # def create_result_save_dir(self):
-    #     """
-    #     See ibase_project.py
-    #
-    #     Returns:
-    #         None
-    #     """
-    #     if self._var.DATASET_FORMAT == 'yolov8':
-    #         result_dir_path = pjoin(self.proj_dir, f'{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}')
-    #         image_dir_path = pjoin(result_dir_path, 'images')
-    #         label_dir_path = pjoin(result_dir_path, 'labels')
-    #         yaml_path = pjoin(result_dir_path, 'data.yaml')
-    #         return result_dir_path, image_dir_path, label_dir_path, yaml_path
-    #     else:
-    #         raise TypeError('Unsupported dataset format!')
