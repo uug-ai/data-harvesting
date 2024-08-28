@@ -2,6 +2,11 @@ from uugai_python_dynamic_queue.MessageBrokers import RabbitMQ
 from uugai_python_kerberos_vault.KerberosVault import KerberosVault
 
 from exports.export_factory import ExportFactory
+from os.path import (
+    join as pjoin,
+    dirname as pdirname,
+    abspath as pabspath,
+)
 from services.iharvest_service import IHarvestService
 from utils.VariableClass import VariableClass
 import time
@@ -115,8 +120,12 @@ class HarvestService(IHarvestService):
         _cur_dir = os.getcwd()
         # initialise the yolo model, additionally use the device parameter to specify the device to run the model on.
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        model = YOLO(self._var.MODEL_NAME).to(device)
-        model2 = YOLO(self._var.MODEL_NAME_2).to(device)
+        _cur_dir = pdirname(pabspath(__file__))
+        model_dir = pjoin(_cur_dir, f'../models')
+        model_dir = pabspath(model_dir)  # normalise the link
+
+        model = YOLO(pjoin(model_dir, self._var.MODEL_NAME)).to(device)
+        model2 = YOLO(pjoin(model_dir, self._var.MODEL_NAME_2)).to(device)
         if model and model2:
             print(f'2. Using device: {device}')
             print(f'3. Using models: {self._var.MODEL_NAME} and  {self._var.MODEL_NAME_2}')

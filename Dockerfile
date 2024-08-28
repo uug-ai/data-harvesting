@@ -43,8 +43,19 @@ COPY . .
 ENV MEDIA_SAVEPATH "/ml/data/input/input_video.mp4"
 
 # Model parameters
-ENV MODEL_NAME: "helmet_dectector_1k_16b_150e.pt"
+ENV MODEL_NAME: "yolov8n.pt.pt"
 ENV MODEL_NAME_2: "helmet_dectector_1k_16b_150e.pt"
+ENV MODEL_ALLOWED_CLASSES="0"
+ENV MODEL_2_ALLOWED_CLASSES="0"
+
+# Dataset parameters
+ENV DATASET_FORMAT="base"
+ENV DATASET_VERSION="1"
+ENV DATASET_UPLOAD="True"
+
+# Forwarding
+ENV FORWARDING_MEDIA="True"
+ENV REMOVE_AFTER_PROCESSED="True"
 
 # Queue parameters
 ENV QUEUE_NAME ""
@@ -59,11 +70,19 @@ ENV STORAGE_URI ""
 ENV STORAGE_ACCESS_KEY ""
 ENV STORAGE_SECRET_KEY ""
 
+#Integration parameters
+ENV INTEGRATION_NAME=""
+
 # Roboflow parameters
-ENV RBF_UPLOAD: ""
 ENV RBF_API_KEY: ""
 ENV RBF_WORKSPACE: ""
 ENV RBF_PROJECT: ""
+
+#S3 parameters
+ENV S3_ENDPOINT=""
+ENV S3_ACCESS_KEY=""
+ENV S3_SECRET_KEY=""
+ENV S3_BUCKET=""
 
 # Feature parameters
 ENV PLOT "False"

@@ -10,6 +10,11 @@ import time
 
 
 class Yolov8Export(IYolov8Export):
+    """
+    Yolov8 Export class that implements functions for
+    initializing, saving frame and creating yaml file under specific format.
+    """
+
     def __init__(self, proj_dir_name):
         """
         Constructor.
@@ -25,10 +30,10 @@ class Yolov8Export(IYolov8Export):
 
     def initialize_save_dir(self):
         """
-        See ibase_project.py
+        See iyolov8_export.py
 
         Returns:
-            None
+            Success true or false.
         """
         self.result_dir_path = pjoin(self.proj_dir, f'{self._var.DATASET_FORMAT}-v{self._var.DATASET_VERSION}')
         os.makedirs(self.result_dir_path, exist_ok=True)
@@ -51,6 +56,12 @@ class Yolov8Export(IYolov8Export):
             return False
 
     def save_frame(self, frame, predicted_frames, cv2, labels_and_boxes):
+        """
+        See iyolov8_export.py
+
+        Returns:
+            Predicted frame counter.
+        """
         print(f'5.1. Condition met, processing valid frame: {predicted_frames}')
         # Save original frame
         unix_time = int(time.time())

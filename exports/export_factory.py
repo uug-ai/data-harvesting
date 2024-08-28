@@ -7,6 +7,7 @@ class ExportFactory:
     """
     Export Factory initializes specific export types.
     """
+
     def __init__(self):
         self._var = VariableClass()
         self.save_format = self._var.DATASET_FORMAT

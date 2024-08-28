@@ -10,7 +10,15 @@ import time
 
 
 class BaseExport(IBaseExport):
+    """
+    Base Export class that implements functions for
+    initializing and saving frame under specific format.
+    """
+
     def __init__(self, proj_dir_name):
+        """
+        Constructor.
+        """
         self._var = VariableClass()
         _cur_dir = pdirname(pabspath(__file__))
         self.proj_dir = pjoin(_cur_dir, f'../data/{proj_dir_name}')
@@ -19,10 +27,10 @@ class BaseExport(IBaseExport):
 
     def initialize_save_dir(self):
         """
-        See ibase_project.py
+        See ibase_export.py
 
         Returns:
-            None
+            success True or False
         """
         self.result_dir_path = pjoin(self.proj_dir, f'{self._var.DATASET_FORMAT}-v{self._var.DATASET_VERSION}')
         os.makedirs(self.result_dir_path, exist_ok=True)
@@ -35,6 +43,12 @@ class BaseExport(IBaseExport):
             return False
 
     def save_frame(self, frame, predicted_frames, cv2, labels_and_boxes):
+        """
+        See ibase_export.py
+
+        Returns:
+            Predicted frame counter.
+        """
         print(f'5.1. Condition met, processing valid frame: {predicted_frames}')
         # Save original frame
         unix_time = int(time.time())
