@@ -10,13 +10,19 @@ class ExportFactory:
 
     def __init__(self):
         self._var = VariableClass()
-        self.save_format = self._var.DATASET_FORMAT
+        self.name = self._var.DATASET_FORMAT
 
-    def init(self, proj_name):
-        if self.save_format == 'yolov8':
-            return Yolov8Export(proj_name)
-        elif self.save_format == 'base':
-            return BaseExport(proj_name)
+    def init(self):
+        """
+        Initializes specific export with given name.
+
+        Returns:
+            Initialized corresponding export object.
+        """
+        if self.name == 'yolov8':
+            return Yolov8Export(self.name)
+        elif self.name == 'base':
+            return BaseExport(self.name)
         else:
             raise ModuleNotFoundError('Export type not found!')
 

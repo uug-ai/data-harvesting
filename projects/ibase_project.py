@@ -37,3 +37,13 @@ class IBaseProject(ABC):
             See base_project.py
         """
         pass
+
+    @abstractmethod
+    def create_proj_save_dir(self, dir_name):
+        """
+        Create project save directory after initializing the project.
+
+        Args:
+            dir_name: Name of the directory (should be project name).
+        """
+        pass

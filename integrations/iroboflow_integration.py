@@ -15,11 +15,3 @@ class IRoboflowIntegration(ABC):
             src_project_path: Project save path
         """
         pass
-
-    @abstractmethod
-    def __connect__(self):
-        """
-        Connect to Roboflow agent.
-        You need to provide Roboflow parameters in .env file.
-        """
-        pass

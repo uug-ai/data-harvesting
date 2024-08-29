@@ -10,7 +10,7 @@ var = VariableClass()
 # Function to process the frame.
 
 
-def process_frame(MODEL, MODEL2, frame, condition_func, mapping, video_out='', frames_out=''):
+def process_frame(frame, project, video_out='', frames_out=''):
     # Perform object classification on the frame.
     # persist=True -> The tracking results are stored in the model.
     # persist should be kept True, as this provides unique IDs for each detection.
@@ -21,22 +21,24 @@ def process_frame(MODEL, MODEL2, frame, condition_func, mapping, video_out='', f
         start_time_class_prediction = time.time()
 
     # Execute the model
-    results = MODEL.track(
+    results = project.model.track(
         source=frame,
         persist=True,
         verbose=False,
         iou=var.IOU,
         conf=var.CLASSIFICATION_THRESHOLD,
-        classes=var.MODEL_ALLOWED_CLASSES)
+        classes=var.MODEL_ALLOWED_CLASSES,
+        device=project.device)
     results2 = None
-    if MODEL2:
-        results2 = MODEL2.track(
+    if project.model2:
+        results2 = project.model2.track(
             source=frame,
             persist=True,
             verbose=False,
             iou=var.IOU,
             conf=var.CLASSIFICATION_THRESHOLD,
-            classes=var.MODEL_2_ALLOWED_CLASSES)
+            classes=var.MODEL_2_ALLOWED_CLASSES,
+            device=project.device)
         results2 = results2[0]
 
     if var.TIME_VERBOSE:
@@ -63,9 +65,9 @@ def process_frame(MODEL, MODEL2, frame, condition_func, mapping, video_out='', f
         # Valid image need to:
         # + Have at least MIN_DETECTIONS objects detected:
         # + Have to have helmet (since we are lacking of helmet dataset)
-        if condition_func(results, results2, mapping):
+        if project.condition_func(results, results2, project.mapping):
             # Add labels and boxes of model 1 (add using mapping since we will store the label of model 2)
-            combined_results += [(box.xywhn, mapping[int(box.cls)], box.conf) for box in results.boxes]
+            combined_results += [(box.xywhn, project.mapping[int(box.cls)], box.conf) for box in results.boxes]
 
             # Add labels and boxes of model 2
             combined_results += [(box2.xywhn, box2.cls, box2.conf) for box2 in results2.boxes]
@@ -94,6 +96,7 @@ def process_frame(MODEL, MODEL2, frame, condition_func, mapping, video_out='', f
 
         # Annotate the frame with the classification objects.
         # Draw the class name and the confidence on the frame.
+        # TODO: This should be moved to above condition
         if var.SAVE_VIDEO or var.PLOT:
             for box, mask in zip(results.boxes, results.masks or [None] * len(results.boxes)):
                 # Translate the class name to a human-readable format and display it on the frame.

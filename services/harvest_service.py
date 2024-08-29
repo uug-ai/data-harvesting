@@ -1,21 +1,13 @@
 from uugai_python_dynamic_queue.MessageBrokers import RabbitMQ
 from uugai_python_kerberos_vault.KerberosVault import KerberosVault
-
-from exports.export_factory import ExportFactory
-from os.path import (
-    join as pjoin,
-    dirname as pdirname,
-    abspath as pabspath,
-)
 from services.iharvest_service import IHarvestService
 from utils.VariableClass import VariableClass
+from condition import process_frame as con_process_frame
+
 import time
 import requests
-from ultralytics import YOLO
-import torch
 import os
 import cv2
-from condition import process_frame as con_process_frame
 
 
 class HarvestService(IHarvestService):
@@ -37,7 +29,9 @@ class HarvestService(IHarvestService):
         self.frame_skip_factor = 0
         # Initialize the VariableClass object, which contains all the necessary environment variables.
         self._var = VariableClass()
-        self._save_format = ExportFactory().init(proj_name='helmet_detection')
+        self.project = None
+        self.integration = None
+        self.export = None
 
     def connect(self, *agents):
         """
@@ -65,6 +59,27 @@ class HarvestService(IHarvestService):
             storage_uri=self._var.STORAGE_URI,
             storage_access_key=self._var.STORAGE_ACCESS_KEY,
             storage_secret_key=self._var.STORAGE_SECRET_KEY)
+
+    def register(self, name, value_obj):
+        """
+        See iharvest_service.py
+        """
+        if not value_obj:
+            raise ModuleNotFoundError('Module not found! Make sure value_obj is filled correctly')
+
+        expected_names = {
+            'project': self._var.PROJECT_NAME,
+            'integration': self._var.INTEGRATION_NAME,
+            'export': self._var.DATASET_FORMAT,
+        }
+
+        if name in expected_names:
+            if value_obj.name == expected_names[name]:
+                setattr(self, name, value_obj)
+            else:
+                raise ModuleNotFoundError(f'{name.capitalize()} not found! Make sure you filled in the correct name')
+        else:
+            raise ModuleNotFoundError('Module not found! Make sure name is filled correctly')
 
     def receive_message(self):
         """
@@ -113,26 +128,6 @@ class HarvestService(IHarvestService):
             else:
                 print("Delete media from " + self._var.STORAGE_URI)
 
-    def connect_models(self):
-        """
-        See iharvest_service.py
-        """
-        _cur_dir = os.getcwd()
-        # initialise the yolo model, additionally use the device parameter to specify the device to run the model on.
-        device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        _cur_dir = pdirname(pabspath(__file__))
-        model_dir = pjoin(_cur_dir, f'../models')
-        model_dir = pabspath(model_dir)  # normalise the link
-
-        model = YOLO(pjoin(model_dir, self._var.MODEL_NAME)).to(device)
-        model2 = YOLO(pjoin(model_dir, self._var.MODEL_NAME_2)).to(device)
-        if model and model2:
-            print(f'2. Using device: {device}')
-            print(f'3. Using models: {self._var.MODEL_NAME} and  {self._var.MODEL_NAME_2}')
-            return model, model2
-        else:
-            raise ModuleNotFoundError('Something wrong happened!')
-
     def open_video(self, message=''):
         """
         See iharvest_service.py
@@ -154,16 +149,7 @@ class HarvestService(IHarvestService):
         cap = cv2.VideoCapture(self._var.MEDIA_SAVEPATH)
         if not cap.isOpened():
             raise FileNotFoundError('Unable to open video file')
-        # Initialize the video-writer if the SAVE_VIDEO is set to True.
-        # if self._var.SAVE_VIDEO:
-        #     fourcc = cv2.VideoWriter.fourcc(*'avc1')
-        #     video_out = cv2.VideoWriter(
-        #         filename=self._var.OUTPUT_MEDIA_SAVEPATH,
-        #         fourcc=fourcc,
-        #         fps=self._var.CLASSIFICATION_FPS,
-        #         frameSize=(int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-        #                    int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        #     )
+
         self.frame_number = 0
         self.predicted_frames = 0
         self.max_frame_number = cap.get(cv2.CAP_PROP_FRAME_COUNT)
@@ -171,19 +157,25 @@ class HarvestService(IHarvestService):
             cap.get(cv2.CAP_PROP_FPS) / self._var.CLASSIFICATION_FPS)
         return cap
 
-    def process(self, cap, model1, model2, condition_func, mapping):
+    def evaluate(self, video):
+        """
+        See iharvest_service.py
+
+        Returns:
+            Saved result directory path.
+        """
         if self.max_frame_number > 0:
             skip_frames_counter = 0
 
             # Create save dir and yaml file
-            success = self._save_format.initialize_save_dir()
+            success = self.export.initialize_save_dir()
             if success and self._var.DATASET_FORMAT == 'roboflow':
-                self._save_format.create_yaml(model2)
+                self.export.create_yaml(self.project.model2 if self.project.model2 else self.project.model)
 
             while (self.predicted_frames < self._var.MAX_NUMBER_OF_PREDICTIONS) and (
                     self.frame_number < self.max_frame_number):
                 # Read the frame from the video-capture.
-                success, frame, skip_frames_counter = self.get_frame(cap, skip_frames_counter)
+                success, frame, skip_frames_counter = self.get_frame(video, skip_frames_counter)
                 # Increment frame number after processing
                 self.frame_number += 1
 
@@ -193,15 +185,11 @@ class HarvestService(IHarvestService):
                 if frame is None:
                     continue
 
-                # Process frame
+                # Predict frame
                 skip_frames_counter = self.predict_frame(
-                    model1,
-                    model2,
                     frame,
-                    condition_func,
-                    mapping,
                     skip_frames_counter)
-        return self._save_format.result_dir_path
+        return self.export.result_dir_path
 
     def get_frame(self, cap: cv2.VideoCapture, skip_frames_counter):
         """
@@ -221,14 +209,7 @@ class HarvestService(IHarvestService):
 
         return True, frame, skip_frames_counter
 
-    def predict_frame(
-            self,
-            model1,
-            model2,
-            frame,
-            condition_func,
-            mapping,
-            skip_frames_counter):
+    def predict_frame(self, frame, skip_frames_counter):
         """
         See iharvest_service.py
 
@@ -236,16 +217,38 @@ class HarvestService(IHarvestService):
             int: The updated skip frames counter.
         """
         if self.frame_number > 0 and self.frame_skip_factor > 0 and self.frame_number % self.frame_skip_factor == 0:
-            frame, total_time_class_prediction, condition_met, labels_and_boxes = con_process_frame(
-                model1, model2, frame, condition_func, mapping)
+            frame, total_time_class_prediction, condition_met, labels_and_boxes = con_process_frame(frame, self.project)
 
             if condition_met:
-                self.predicted_frames = self._save_format.save_frame(frame, self.predicted_frames, cv2,
-                                                                     labels_and_boxes)
-                skip_frames_counter = 50
+                self.predicted_frames = self.export.save_frame(frame, self.predicted_frames, cv2, labels_and_boxes)
+                skip_frames_counter = self._var.FRAMES_SKIP_AFTER_DETECT
         print(f'Currently in frame: {self.frame_number}')
         self.frame_number += 1
         return skip_frames_counter
+
+    def save_video(self, video):
+        """
+        See iharvest_service.py
+        """
+        # Initialize the video-writer if the SAVE_VIDEO is set to True.
+        if self._var.SAVE_VIDEO:
+            fourcc = cv2.VideoWriter.fourcc(*'avc1')
+            video_out = cv2.VideoWriter(
+                filename=self._var.OUTPUT_MEDIA_SAVEPATH,
+                fourcc=fourcc,
+                fps=self._var.CLASSIFICATION_FPS,
+                frameSize=(int(video.get(cv2.CAP_PROP_FRAME_WIDTH)),
+                           int(video.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+            )
+
+            print(f'Output video saved under {self._var.OUTPUT_MEDIA_SAVEPATH}.')
+            # Free resources after processing
+            video_out.release()
+        else:
+            print(f'Save video: {self._var.SAVE_VIDEO}, skipping!')
+
+        # Free all other resources
+        cv2.destroyAllWindows()
 
     def __download_video__(self, message):
         """

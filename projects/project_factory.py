@@ -1,4 +1,5 @@
 from projects.helmet_project import HelmetProject
+from utils.VariableClass import VariableClass
 
 
 class ProjectFactory:
@@ -6,17 +7,18 @@ class ProjectFactory:
     Project Factory initializes specific projects.
     """
 
-    def init(self, name):
-        """
-        Initializes specific projects with given name.
+    def __init__(self):
+        self._var = VariableClass()
+        self._name = self._var.PROJECT_NAME
 
-        Args:
-            name: name of the project, should be 'helmet'.
+    def init(self):
+        """
+        Initializes specific project with given name.
 
         Returns:
             Initialized corresponding project object.
         """
-        if name == 'helmet':
+        if self._name == 'helmet':
             print('Initializing Helmet Detection Project...')
             return HelmetProject()
         else:

@@ -21,11 +21,24 @@ class IHarvestService(ABC):
         pass
 
     @abstractmethod
+    def register(self, name, value_obj):
+        """
+        Registers a module (project, integration, or export format) with the specified name and value object.
+
+        This method dynamically assigns a value object to one of the attributes (`project`, `integration`, or `export`)
+        based on the provided `name`.
+
+        Args:
+            name: The name of the module to register. Must be one of 'project', 'integration', or 'export'.
+            value_obj: value of the module to register.
+        """
+        pass
+
+    @abstractmethod
     def receive_message(self):
         """
         Receives a message from RabbitMQ and retrieves the corresponding media
         from Kerberos Vault.
-
         """
         pass
 
@@ -38,19 +51,6 @@ class IHarvestService(ABC):
         Args:
             media_key: The key of the media to delete from the vault.
             provider: The provider information for the media in the vault.
-        """
-        pass
-
-    @abstractmethod
-    def connect_models(self):
-        """
-        Initializes the YOLO models and connects them to the appropriate device (CPU or GPU).
-
-        Returns:
-            tuple: A tuple containing two YOLO models.
-
-        Raises:
-            ModuleNotFoundError: If the models cannot be loaded.
         """
         pass
 
@@ -69,6 +69,16 @@ class IHarvestService(ABC):
         pass
 
     @abstractmethod
+    def evaluate(self, video):
+        """
+        Process input video, perform model prediction logic for every frame.
+
+        Args
+            video: Input video.
+        """
+        pass
+
+    @abstractmethod
     def get_frame(self, cap, skip_frames_counter):
         """
         Retrieves the next frame from the video capture object, potentially skipping frames.
@@ -80,5 +90,26 @@ class IHarvestService(ABC):
         Returns:
             tuple: A tuple containing a boolean indicating success, the frame (or None),
                    and the updated skip frames counter.
+        """
+        pass
+
+    @abstractmethod
+    def predict_frame(self, frame, skip_frames_counter):
+        """
+        Predict input frame.
+
+        Args:
+            frame: Input frame to be predicted.
+            skip_frames_counter: Skipped frame counter (used when condition in 1 frame is met, skip x next frames).
+        """
+        pass
+
+    @abstractmethod
+    def save_video(self, cap):
+        """
+        Save processed video.
+
+        Args:
+            cap: Current video capture.
         """
         pass

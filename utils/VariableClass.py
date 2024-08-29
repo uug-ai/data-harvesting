@@ -40,6 +40,8 @@ class VariableClass:
         self.STORAGE_SECRET_KEY = os.getenv("STORAGE_SECRET_KEY")
 
         # Feature parameters
+        self.PROJECT_NAME = os.getenv("PROJECT_NAME")
+
         # The == "True" is used to convert the string to a boolean.
         self.PLOT = os.getenv("PLOT") == "True"
 

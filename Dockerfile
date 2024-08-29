@@ -21,7 +21,7 @@ RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultral
 ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
 
 # Add helmet model
-COPY helmet_dectector_1k_16b_150e.pt /usr/src/ultralytics/
+COPY ./models/helmet_dectector_1k_16b_150e.pt /usr/src/ultralytics/
 
 # Copy requirements.txt including the needed python packages
 COPY requirements.txt /ml/requirements.txt
@@ -85,6 +85,7 @@ ENV S3_SECRET_KEY=""
 ENV S3_BUCKET=""
 
 # Feature parameters
+ENV PROJECT_NAME=""
 ENV PLOT "False"
 
 ENV SAVE_VIDEO "False"

@@ -14,6 +14,7 @@ class HelmetProject(BaseProject, IHelmetProject):
         Constructor.
         """
         super().__init__()
+        self.mapping = self.class_mapping(self.model, self.model2)
         self.create_proj_save_dir('helmet_detection')
 
     def condition_func(self, results1, results2, mapping):
@@ -57,4 +58,5 @@ class HelmetProject(BaseProject, IHelmetProject):
                 if class_name1 and class_name2 and str.lower(class_name1) == str.lower(class_name2):
                     mapping[index1] = index2
 
+        print('Finish mapping models.')
         return mapping
