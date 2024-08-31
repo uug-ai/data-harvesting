@@ -22,7 +22,7 @@ class FlatExport(IFlatExport):
         self.name = name
         self._var = VariableClass()
         _cur_dir = pdirname(pabspath(__file__))
-        self.proj_dir = pjoin(_cur_dir, f'../data/{name}')
+        self.proj_dir = pjoin(_cur_dir, f'../../data/{name}')
         self.proj_dir = pabspath(self.proj_dir)  # normalise the link
         self.result_dir_path = None
 
