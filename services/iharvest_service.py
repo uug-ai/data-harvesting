@@ -103,13 +103,3 @@ class IHarvestService(ABC):
             skip_frames_counter: Skipped frame counter (used when condition in 1 frame is met, skip x next frames).
         """
         pass
-
-    @abstractmethod
-    def save_video(self, cap):
-        """
-        Save processed video.
-
-        Args:
-            cap: Current video capture.
-        """
-        pass

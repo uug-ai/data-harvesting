@@ -1,5 +1,5 @@
-from integrations.roboflow_integration import RoboflowIntegration
-from integrations.s3_integration import S3Integration
+from integrations.roboflow.roboflow_integration import RoboflowIntegration
+from integrations.s3.s3_integration import S3Integration
 from utils.VariableClass import VariableClass
 
 

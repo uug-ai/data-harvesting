@@ -11,20 +11,13 @@ class VariableClass:
         """This function is used to load all the environment variables and store them in the class.
 
         """
-
         # Environment variables
         load_dotenv()
 
         # Model parameters
-        self.MODEL_NAME = os.getenv("MODEL_NAME")
-        self.MEDIA_SAVEPATH = os.getenv("MEDIA_SAVEPATH")
-        self.MODEL_NAME_2 = os.getenv("MODEL_NAME_2")
-        self.MODEL_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_ALLOWED_CLASSES', '0').split(',')))
-        self.MODEL_2_ALLOWED_CLASSES = list(map(int, os.getenv('MODEL_2_ALLOWED_CLASSES', '0').split(',')))
-
-        # Model parameters
         self.DATASET_FORMAT = os.getenv("DATASET_FORMAT")
         self.DATASET_VERSION = os.getenv("DATASET_VERSION")
+        self.DATASET_UPLOAD = os.getenv("DATASET_UPLOAD") == "True"
 
         # Queue parameters
         self.QUEUE_NAME = os.getenv("QUEUE_NAME")
@@ -43,8 +36,6 @@ class VariableClass:
         self.PROJECT_NAME = os.getenv("PROJECT_NAME")
 
         # The == "True" is used to convert the string to a boolean.
-        self.PLOT = os.getenv("PLOT") == "True"
-
         self.TIME_VERBOSE = os.getenv("TIME_VERBOSE") == "True"
 
         self.LOGGING = os.getenv("LOGGING") == "True"
@@ -61,10 +52,6 @@ class VariableClass:
         self.RETURN_JSON_SAVEPATH = os.getenv("RETURN_JSON_SAVEPATH")
         if self.SAVE_RETURN_JSON:
             self.CREATE_RETURN_JSON = True
-
-        self.SAVE_VIDEO = os.getenv("SAVE_VIDEO") == "True"
-        self.SAVE_FRAMES = os.getenv("SAVE_FRAMES") == "True"
-        self.OUTPUT_MEDIA_SAVEPATH = os.getenv("OUTPUT_MEDIA_SAVEPATH")
 
         self.FIND_DOMINANT_COLORS = os.getenv("FIND_DOMINANT_COLORS") == "True"
         if os.getenv("COLOR_PREDICTION_INTERVAL") is not None:
@@ -94,13 +81,6 @@ class VariableClass:
         self.FRAMES_SKIP_AFTER_DETECT = int(os.getenv("FRAMES_SKIP_AFTER_DETECT", "50"))
         self.IOU = float(os.getenv("IOU", "0.85"))
 
-        ALLOWED_CLASSIFICATIONS_STR = os.getenv("ALLOWED_CLASSIFICATIONS")
-        self.ALLOWED_CLASSIFICATIONS = [
-            int(item.strip()) for item in ALLOWED_CLASSIFICATIONS_STR.split(',')]
-        TRANSLATED_CLASSIFICATIONS_STR = os.getenv("ALLOWED_CLASSIFICATIONS")
-        self.TRANSLATED_CLASSIFICATIONS = [
-            item.strip() for item in TRANSLATED_CLASSIFICATIONS_STR.split(',')]
-
         # Integration parameters
         self.INTEGRATION_NAME = os.getenv("INTEGRATION_NAME")
 
@@ -108,11 +88,9 @@ class VariableClass:
         self.ROBOFLOW_API_KEY = os.getenv("RBF_API_KEY")
         self.ROBOFLOW_WORKSPACE = os.getenv("RBF_WORKSPACE")
         self.ROBOFLOW_PROJECT = os.getenv("RBF_PROJECT")
-        self.DATASET_UPLOAD = os.getenv("DATASET_UPLOAD") == "True"
 
         # S3 parameters
         self.S3_ENDPOINT = os.getenv("S3_ENDPOINT")
         self.S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
         self.S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
         self.S3_BUCKET = os.getenv("S3_BUCKET")
-

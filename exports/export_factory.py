@@ -1,5 +1,5 @@
-from exports.base_export import BaseExport
-from exports.yolov8_export import Yolov8Export
+from exports.flat.flat_export import FlatExport
+from exports.yolov8.yolov8_export import Yolov8Export
 from utils.VariableClass import VariableClass
 
 
@@ -21,8 +21,8 @@ class ExportFactory:
         """
         if self.name == 'yolov8':
             return Yolov8Export(self.name)
-        elif self.name == 'base':
-            return BaseExport(self.name)
+        elif self.name == 'flat':
+            return FlatExport(self.name)
         else:
             raise ModuleNotFoundError('Export type not found!')
 

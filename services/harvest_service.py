@@ -104,7 +104,7 @@ class HarvestService(IHarvestService):
         self.vault.retrieve_media(
             message=message,
             media_type='video',
-            media_savepath=self._var.MEDIA_SAVEPATH)
+            media_savepath=self.project.temp_path)
         return message
 
     def delete_media(self, media_key, provider):
@@ -141,12 +141,12 @@ class HarvestService(IHarvestService):
 
         # Open video-capture/recording using the video-path. Throw FileNotFoundError if cap is unable to open.
         if self._var.LOGGING:
-            print(f'4. Opening video file: {self._var.MEDIA_SAVEPATH}')
-        if not os.path.exists(self._var.MEDIA_SAVEPATH):
-            raise FileNotFoundError(f'Cannot find {self._var.MEDIA_SAVEPATH}')
-        if not self._var.MEDIA_SAVEPATH.lower().endswith(('.mp4', '.avi', '.mov')):
+            print(f'4. Opening video file: {self.project.temp_path}')
+        if not os.path.exists(self.project.temp_path):
+            raise FileNotFoundError(f'Cannot find {self.project.temp_path}')
+        if not self.project.temp_path.lower().endswith(('.mp4', '.avi', '.mov')):
             raise TypeError('Unsupported file format! Only support videos with .mp4, .avi, .mov extensions')
-        cap = cv2.VideoCapture(self._var.MEDIA_SAVEPATH)
+        cap = cv2.VideoCapture(self.project.temp_path)
         if not cap.isOpened():
             raise FileNotFoundError('Unable to open video file')
 
@@ -170,7 +170,7 @@ class HarvestService(IHarvestService):
             # Create save dir and yaml file
             success = self.export.initialize_save_dir()
             if success and self._var.DATASET_FORMAT == 'roboflow':
-                self.export.create_yaml(self.project.model2 if self.project.model2 else self.project.model)
+                self.export.create_yaml(self.project)
 
             while (self.predicted_frames < self._var.MAX_NUMBER_OF_PREDICTIONS) and (
                     self.frame_number < self.max_frame_number):
@@ -189,6 +189,8 @@ class HarvestService(IHarvestService):
                 skip_frames_counter = self.predict_frame(
                     frame,
                     skip_frames_counter)
+            # Free all resources
+            cv2.destroyAllWindows()
         return self.export.result_dir_path
 
     def get_frame(self, cap: cv2.VideoCapture, skip_frames_counter):
@@ -222,33 +224,9 @@ class HarvestService(IHarvestService):
             if condition_met:
                 self.predicted_frames = self.export.save_frame(frame, self.predicted_frames, cv2, labels_and_boxes)
                 skip_frames_counter = self._var.FRAMES_SKIP_AFTER_DETECT
-        print(f'Currently in frame: {self.frame_number}')
+            print(f'Currently in frame: {self.frame_number}')
         self.frame_number += 1
         return skip_frames_counter
-
-    def save_video(self, video):
-        """
-        See iharvest_service.py
-        """
-        # Initialize the video-writer if the SAVE_VIDEO is set to True.
-        if self._var.SAVE_VIDEO:
-            fourcc = cv2.VideoWriter.fourcc(*'avc1')
-            video_out = cv2.VideoWriter(
-                filename=self._var.OUTPUT_MEDIA_SAVEPATH,
-                fourcc=fourcc,
-                fps=self._var.CLASSIFICATION_FPS,
-                frameSize=(int(video.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                           int(video.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-            )
-
-            print(f'Output video saved under {self._var.OUTPUT_MEDIA_SAVEPATH}.')
-            # Free resources after processing
-            video_out.release()
-        else:
-            print(f'Save video: {self._var.SAVE_VIDEO}, skipping!')
-
-        # Free all other resources
-        cv2.destroyAllWindows()
 
     def __download_video__(self, message):
         """
@@ -260,5 +238,5 @@ class HarvestService(IHarvestService):
         self.vault.retrieve_media(
             message=message,
             media_type='video',
-            media_savepath=self._var.MEDIA_SAVEPATH)
-        print(f'Video downloaded under {self._var.MEDIA_SAVEPATH}')
+            media_savepath=self.project.temp_path)
+        print(f'Video downloaded under {self.project.temp_path}')

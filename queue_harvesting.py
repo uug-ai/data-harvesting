@@ -67,9 +67,6 @@ def init():
             print('8) Releasing video writer and closing video capture')
             print("\n\n")
 
-        # Save video if SAVE_VIDEO is true.
-        harvest_service.save_video(video)
-
 
 # Run the init function.
 init()

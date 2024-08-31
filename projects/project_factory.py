@@ -1,4 +1,4 @@
-from projects.helmet_project import HelmetProject
+from projects.helmet.helmet_project import HelmetProject
 from utils.VariableClass import VariableClass
 
 

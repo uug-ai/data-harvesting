@@ -1,4 +1,4 @@
-from exports.iyolov8_export import IYolov8Export
+from exports.yolov8.iyolov8_export import IYolov8Export
 from utils.VariableClass import VariableClass
 from os.path import (
     join as pjoin,
@@ -78,7 +78,7 @@ class Yolov8Export(IYolov8Export):
         # Increase the frame_number and predicted_frames by one.
         return predicted_frames + 1
 
-    def create_yaml(self, model2):
+    def create_yaml(self, project):
         """
         Create YAML configuration file with DATASET_FORMAT format.
         As convention, class names of YAML file is configured based on model2
@@ -86,7 +86,9 @@ class Yolov8Export(IYolov8Export):
         Returns:
             None
         """
-        label_names = [name for name in list(model2.names.values())]
+        model = project.model2 if project.model2 else project.model
+
+        label_names = [name for name in list(model.names.values())]
         with open(self.yaml_path, 'w') as my_file:
             content = 'names:\n'
             for name in label_names:
