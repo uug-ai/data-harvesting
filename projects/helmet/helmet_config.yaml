@@ -1,0 +1,10 @@
+models:
+ - helmet_dectector_1k_16b_150e.pt
+ - yolov8n.pt
+ - yolov8n.pt
+allowed_classes:
+ - [0, 1, 2]
+ - [0]
+ - [0]
+
+temp: "data/video/temp_video.mp4" # System will temporarily download video from Integration to process

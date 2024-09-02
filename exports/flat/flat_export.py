@@ -1,4 +1,4 @@
-from exports.ibase_export import IBaseExport
+from exports.flat.iflat_export import IFlatExport
 from utils.VariableClass import VariableClass
 from os.path import (
     join as pjoin,
@@ -9,25 +9,26 @@ import os
 import time
 
 
-class BaseExport(IBaseExport):
+class FlatExport(IFlatExport):
     """
     Base Export class that implements functions for
     initializing and saving frame under specific format.
     """
 
-    def __init__(self, proj_dir_name):
+    def __init__(self, name):
         """
         Constructor.
         """
+        self.name = name
         self._var = VariableClass()
         _cur_dir = pdirname(pabspath(__file__))
-        self.proj_dir = pjoin(_cur_dir, f'../data/{proj_dir_name}')
+        self.proj_dir = pjoin(_cur_dir, f'../../data/{name}')
         self.proj_dir = pabspath(self.proj_dir)  # normalise the link
         self.result_dir_path = None
 
     def initialize_save_dir(self):
         """
-        See ibase_export.py
+        See iflat_export.py
 
         Returns:
             success True or False
@@ -44,7 +45,7 @@ class BaseExport(IBaseExport):
 
     def save_frame(self, frame, predicted_frames, cv2, labels_and_boxes):
         """
-        See ibase_export.py
+        See iflat_export.py
 
         Returns:
             Predicted frame counter.

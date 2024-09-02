@@ -1,6 +1,7 @@
 # This script is used to look for objects under a specific condition (at least 5 persons etc)
 # The script reads a video from a message queue, classifies the objects in the video, and does a condition check.
 # If condition is met, the video is being forwarded to a remote vault.
+from exports.export_factory import ExportFactory
 from integrations.integration_factory import IntegrationFactory
 from projects.project_factory import ProjectFactory
 from services.harvest_service import HarvestService
@@ -13,14 +14,18 @@ var = VariableClass()
 
 def init():
     # Service and Project initializations
-    harvest_service = HarvestService()
-    harvest_service.connect('rabbitmq', 'kerberos_vault')
-    model1, model2 = harvest_service.connect_models()
-
-    project = ProjectFactory().init('helmet')
-    # Mapping classes of 2 models
-    mapping = project.class_mapping(model1, model2)
+    project = ProjectFactory().init()
     integration = IntegrationFactory().init()
+    export = ExportFactory().init()
+    harvest_service = HarvestService()
+
+    # register to service
+    harvest_service.register('project', project)
+    harvest_service.register('integration', integration)
+    harvest_service.register('export', export)
+
+    harvest_service.connect('rabbitmq', 'kerberos_vault')
+
 
     while True:
         # Receive message from the queue,
@@ -32,19 +37,17 @@ def init():
         media_key, provider = message['payload']['key'], message['source']
 
         time_verbose = TimeVerbose()
-        cap = harvest_service.open_video(message)
+        video = harvest_service.open_video(message)
 
         if var.LOGGING:
             print(f'5. Classifying frames')
         if var.TIME_VERBOSE:
             time_verbose.add_preprocessing_time()
-        save_dir = harvest_service.process(
-            cap,
-            model1,
-            model2,
-            project.condition_func,
-            mapping)
 
+        # Evaluate the video
+        save_dir = harvest_service.evaluate(video)
+
+        # Upload dataset if True
         if var.DATASET_UPLOAD:
             integration.upload_dataset(save_dir)
 
@@ -63,12 +66,6 @@ def init():
         if var.LOGGING:
             print('8) Releasing video writer and closing video capture')
             print("\n\n")
-
-        # TODO: CARE AB THIS
-        # video_out.release() if var.SAVE_VIDEO else None
-        # cap.release()
-        # if var.PLOT:
-        #     cv2.destroyAllWindows()
 
 
 # Run the init function.

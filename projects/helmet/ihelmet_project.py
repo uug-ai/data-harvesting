@@ -7,7 +7,7 @@ class IHelmetProject(ABC):
     """
 
     @abstractmethod
-    def condition_func(self, results1, results2, mapping):
+    def condition_func(self, total_results):
         """
         Defines a condition function that operates logic on results of 2 models.
         Conditions:
@@ -16,24 +16,21 @@ class IHelmetProject(ABC):
             - results2 contains helmet
 
         Args:
-            results1: The result of the 1st model.
-            results2: The result of the 2nd model.
-            mapping: A mapping that defines the relationships between elements
-                     in results1 and results2.
+            total_results: The total results of all models.
+
         Returns:
             See helmet_project.py
         """
         pass
 
     @abstractmethod
-    def class_mapping(self, model1, model2):
+    def class_mapping(self, models):
         """
         Maps classes between two models using a provided mapping.
         As a convention, the 2nd model class would be used as the final result.
 
         Args:
-            model1: The 1st input model.
-            model2: The 2nd input model.
+            models: List of models
 
         Returns:
             See helmet_project.py

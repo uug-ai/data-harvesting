@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class IBaseExport(ABC):
+class IFlatExport(ABC):
     """
     Interface for Base Export.
     """

@@ -21,7 +21,7 @@ RUN git clone https://github.com/ultralytics/ultralytics -b main /usr/src/ultral
 ADD https://github.com/ultralytics/assets/releases/download/v8.1.0/yolov8n.pt /usr/src/ultralytics/
 
 # Add helmet model
-COPY helmet_dectector_1k_16b_150e.pt /usr/src/ultralytics/
+COPY ./models/helmet_dectector_1k_16b_150e.pt /usr/src/ultralytics/
 
 # Copy requirements.txt including the needed python packages
 COPY requirements.txt /ml/requirements.txt
@@ -42,11 +42,6 @@ COPY . .
 # Environment variables
 ENV MEDIA_SAVEPATH "/ml/data/input/input_video.mp4"
 
-# Model parameters
-ENV MODEL_NAME: "yolov8n.pt.pt"
-ENV MODEL_NAME_2: "helmet_dectector_1k_16b_150e.pt"
-ENV MODEL_ALLOWED_CLASSES="0"
-ENV MODEL_2_ALLOWED_CLASSES="0"
 
 # Dataset parameters
 ENV DATASET_FORMAT="base"
@@ -85,10 +80,7 @@ ENV S3_SECRET_KEY=""
 ENV S3_BUCKET=""
 
 # Feature parameters
-ENV PLOT "False"
-
-ENV SAVE_VIDEO "False"
-ENV OUTPUT_MEDIA_SAVEPATH "/ml/data/output/output_video.mp4"
+ENV PROJECT_NAME=""
 
 ENV CREATE_BBOX_FRAME "False"
 ENV SAVE_BBOX_FRAME "False"
