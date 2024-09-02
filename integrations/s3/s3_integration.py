@@ -39,7 +39,11 @@ class S3Integration:
 
                 # Upload the file
                 self.__upload_file__(source_path, output_path)
-                print(f'Uploaded: {source_path} to s3://{self.bucket}/{output_path}')
+                print(
+                    f'Uploaded: {source_path} to s3://{self.bucket}/{output_path}')
+
+                # Remove the file after uploading
+                os.remove(source_path)
 
     def __connect__(self):
         """
@@ -72,9 +76,11 @@ class S3Integration:
         """
         try:
             self.agent.upload_file(source_path, self.bucket, output_path)
-            print(f"Successfully uploaded '{source_path}' to 's3://{self.bucket}/{output_path}'")
+            print(
+                f"Successfully uploaded '{source_path}' to 's3://{self.bucket}/{output_path}'")
         except Exception as e:
-            print(f"Failed to upload '{source_path}' to 's3://{self.bucket}/{output_path}': {e}")
+            print(
+                f"Failed to upload '{source_path}' to 's3://{self.bucket}/{output_path}': {e}")
 
     def __check_bucket_exists__(self, bucket_name):
         """
@@ -92,4 +98,5 @@ class S3Integration:
             print(f"Bucket '{bucket_name}' found.")
 
         except:
-            raise ModuleNotFoundError(f"Bucket '{bucket_name}' does not exist.")
+            raise ModuleNotFoundError(
+                f"Bucket '{bucket_name}' does not exist.")

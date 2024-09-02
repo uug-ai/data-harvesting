@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/queue_harvesting.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env.production",
-            "python": "${workspaceFolder}/venv/bin/python" 
+            "python": "${workspaceFolder}/.venv/bin/python" 
         },
         {
             "name": "Python Debugger: single shot",
@@ -20,7 +20,7 @@
             "program": "${workspaceFolder}/single-shot.py",
             "console": "integratedTerminal",
             "envFile": "${workspaceFolder}/.env.production",
-            "python": "${workspaceFolder}/venv/bin/python" 
+            "python": "${workspaceFolder}/.venv/bin/python" 
         }
     ]
 }

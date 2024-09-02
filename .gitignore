@@ -6,3 +6,4 @@ utils/__pycache__
 run.sh
 data/video
 .env.production
+__pycache__

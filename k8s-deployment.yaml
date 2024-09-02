@@ -20,23 +20,28 @@ spec:
           resources:
             limits:
               nvidia.com/gpu: 1 # requesting a single GPU
+              cpu: 2
+              memory: 2Gi
           env:
-            - name: MODEL_NAME
-              value: "yolov8n.pt"
-            - name: MODEL_NAME_2
-              value: "helmet_dectector_1k_16b_150e.pt"
-            - name: MODEL_ALLOWED_CLASSES
-              value: "0"
-            - name: MODEL_2_ALLOWED_CLASSES
-              value: "0,1,2"
+            # Project parameters
+            - name: PROJECT_NAME
+              value: "helmet"
 
+            # Dataset parameters
             - name: DATASET_FORMAT
-              value: "base"
+              value: "flat"
             - name: DATASET_VERSION
               value: "1"
             - name: DATASET_UPLOAD
               value: "True"
 
+            # Forwarding
+            - name: FORWARDING_MEDIA
+              value: "False"
+            - name: REMOVE_AFTER_PROCESSED
+              value: "False"
+
+            # Queue parameters
             - name: QUEUE_NAME
               value: "data-harvesting" # This is the topic of kafka we will read messages from.
             - name: QUEUE_HOST
@@ -47,6 +52,7 @@ spec:
             - name: QUEUE_PASSWORD
               value: yourpassword
 
+            # Kerberos Vault parameters
             - name: STORAGE_URI
               value: "http://vault-lb.kerberos-vault/api"
             - name: STORAGE_ACCESS_KEY
@@ -54,16 +60,19 @@ spec:
             - name: STORAGE_SECRET_KEY
               value: "k8DrcB@hQ5XfxDENzDKcnkxBHx"
 
+            # Integration parameters
             - name: INTEGRATION_NAME
               value: "s3"
 
+            # Roboflow parameters
             - name: RBF_API_KEY
               value: "YOUR KEY"
             - name: RBF_WORKSPACE
               value: "YOUR_WS"
             - name: RBF_PROJECT
               value: "YOUR_PROJ"
-
+            
+            # S3 parameters
             - name: S3_ENDPOINT
               value: "YOUR_ENDPOINT"
             - name: S3_ACCESS_KEY
@@ -73,34 +82,22 @@ spec:
             - name: S3_BUCKET
               value: "YOUR_BUCKET"
 
+            # Logging parameters
             - name: LOGGING
               value: "True"
-            - name: PLOT
-              value: "False"
-            - name: SAVE_VIDEO
-              value: "False"
-            - name: MEDIA_SAVEPATH
-              value: "/ml/data/input/video.mp4"
-            - name: OUTPUT_MEDIA_SAVEPATH
-              value: "/ml/data/input/output_video.mp4"
-
             - name: TIME_VERBOSE
               value: "True"
 
+            # Classification parameters
             - name: CLASSIFICATION_FPS
-              value: "3"
+              value: "5"
             - name: CLASSIFICATION_THRESHOLD
               value: "0.25"
             - name: MAX_NUMBER_OF_PREDICTIONS
               value: "100"
             - name: FRAMES_SKIP_AFTER_DETECT
               value: "50"
-            - name: ALLOWED_CLASSIFICATIONS
-              value: "0, 1, 2, 3, 5, 7, 14, 15, 16, 24, 26, 28"
             - name: MIN_DETECTIONS
               value: "1"
             - name: IOU
               value: "0.85"
-
-            - name: REMOVE_AFTER_PROCESSED
-              value: "True"
