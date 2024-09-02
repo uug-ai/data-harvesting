@@ -7,4 +7,4 @@ allowed_classes:
  - [0]
  - [0]
 
-temp: "data/video/temp_video.mp4" # System will temporarily download video from Integration to process
+temp: "/tmp/video.mp4" # System will temporarily download video from Integration to process
