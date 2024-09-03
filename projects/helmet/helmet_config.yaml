@@ -1,10 +1,11 @@
 models:
  - helmet_dectector_1k_16b_150e.pt
- - yolov8n.pt
- - yolov8n.pt
+ - yolov8x.pt
 allowed_classes:
  - [0, 1, 2]
  - [0]
- - [0]
 
-temp: "/tmp/video.mp4" # System will temporarily download video from Integration to process
+min_height: 100
+min_width: 30
+
+temp: "/tmp/video.mp4" # System will temporarily download video from Integration platform (s3, roboflow) to this path to process

@@ -40,8 +40,8 @@ WORKDIR /ml
 COPY . .
 
 # Environment variables
-ENV MEDIA_SAVEPATH "/ml/data/input/input_video.mp4"
-
+# Feature parameters
+ENV PROJECT_NAME=""
 
 # Dataset parameters
 ENV DATASET_FORMAT="base"
@@ -79,9 +79,6 @@ ENV S3_ACCESS_KEY=""
 ENV S3_SECRET_KEY=""
 ENV S3_BUCKET=""
 
-# Feature parameters
-ENV PROJECT_NAME=""
-
 ENV CREATE_BBOX_FRAME "False"
 ENV SAVE_BBOX_FRAME "False"
 ENV BBOX_FRAME_SAVEPATH "/ml/data/output/output_bbox_frame.jpg"
@@ -100,7 +97,6 @@ ENV MAX_NUMBER_OF_PREDICTIONS ""
 ENV MIN_DISTANCE ""
 ENV MIN_STATIC_DISTANCE ""
 ENV MIN_DETECTIONS ""
-ENV ALLOWED_CLASSIFICATIONS "0, 1, 2, 3, 5, 7, 14, 15, 16, 24, 26, 28"
 ENV IOU ""
 ENV FRAMES_SKIP_AFTER_DETECT ""
 ENV MIN_DETECTIONS ""

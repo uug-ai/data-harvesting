@@ -27,13 +27,22 @@ class HelmetProject(BaseProject, IHelmetProject):
         super().__init__()
         self._config = self.__read_config__(config_path)
         self.temp_path = self._config.get('temp')
+        self.min_width = int(self._config.get('min_width')) if self._config.get('min_width') else 0
+        self.min_height = int(self._config.get('min_height')) if self._config.get('min_height') else 0
         self.models, self.models_allowed_classes = self.connect_models()
         self.mapping = self.class_mapping(self.models)
         self.create_proj_save_dir()
 
     def condition_func(self, total_results):
         """
-        See ihelmet_project.py
+        Apply custom condition for the helmet project.
+        For each frame processed by all models, all conditions below have to be satisfied:
+        - All models have to return results
+        - Model0 has PERSON detection
+        - Model1 has PERSON detection
+        - Model0 has HELMET detection
+        - All models have all PERSON bounding boxes with height greater than minimum_height
+        - All models have all PERSON bounding boxes with width greater than minimum_width
 
         Returns:
             None
@@ -42,9 +51,19 @@ class HelmetProject(BaseProject, IHelmetProject):
         person_model1 = self.mapping[person_model0][1]  # Mapping person from model1 to model0
         helmet_model0 = 1
 
-        return (any(box.cls == person_model0 for box in total_results[0].boxes)
-                and any(box.cls == helmet_model0 for box in total_results[0].boxes)
-                and any(box.cls == person_model1 for box in total_results[1].boxes))
+        has_person_model0 = any(box.cls == person_model0 for box in total_results[0].boxes)
+        has_helmet_model0 = any(box.cls == helmet_model0 for box in total_results[0].boxes)
+        has_person_model1 = any(box.cls == person_model1 for box in total_results[1].boxes)
+        has_minimum_width_height_model0 = all(box.xywh[0, 2] > self.min_width
+                                              and box.xywh[0, 3] > self.min_height for box in total_results[0].boxes
+                                              if box.cls == person_model0)
+        has_minimum_width_height_model1 = all(box.xywh[0, 2] > self.min_width
+                                              and box.xywh[0, 3] > self.min_height for box in total_results[1].boxes
+                                              if box.cls == person_model1)
+        if has_person_model0 and has_helmet_model0 and has_person_model1 and has_minimum_width_height_model0 and has_minimum_width_height_model1:
+            return True
+        else:
+            return False
 
     def class_mapping(self, models):
         """

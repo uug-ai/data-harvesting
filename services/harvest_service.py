@@ -191,6 +191,7 @@ class HarvestService(IHarvestService):
                     skip_frames_counter)
             # Free all resources
             cv2.destroyAllWindows()
+
         return self.export.result_dir_path
 
     def get_frame(self, cap: cv2.VideoCapture, skip_frames_counter):
@@ -219,10 +220,10 @@ class HarvestService(IHarvestService):
             int: The updated skip frames counter.
         """
         if self.frame_number > 0 and self.frame_skip_factor > 0 and self.frame_number % self.frame_skip_factor == 0:
-            frame, total_time_class_prediction, condition_met, labels_and_boxes = con_process_frame(frame, self.project)
+            frame, labels_and_boxes, labeled_frame, total_time_class_prediction, condition_met = con_process_frame(frame, self.project, cv2)
 
             if condition_met:
-                self.predicted_frames = self.export.save_frame(frame, self.predicted_frames, cv2, labels_and_boxes)
+                self.predicted_frames = self.export.save_frame(frame, self.predicted_frames, cv2, labels_and_boxes, labeled_frame)
                 skip_frames_counter = self._var.FRAMES_SKIP_AFTER_DETECT
             print(f'Currently in frame: {self.frame_number}')
         self.frame_number += 1
