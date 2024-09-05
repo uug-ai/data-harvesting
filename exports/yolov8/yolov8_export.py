@@ -28,6 +28,7 @@ class Yolov8Export(IYolov8Export):
         self.label_dir_path = None
         self.yaml_path = None
         self.result_dir_path = None
+        self.result_labeled_dir_path = None
 
     def initialize_save_dir(self):
         """
@@ -47,6 +48,9 @@ class Yolov8Export(IYolov8Export):
 
         self.yaml_path = pjoin(self.result_dir_path, 'data.yaml')
 
+        self.result_labeled_dir_path = pjoin(self.proj_dir,
+                                             f'{self._var.DATASET_FORMAT}-v{self._var.DATASET_VERSION}-labeled')
+
         if (os.path.exists(self.result_dir_path)
                 and os.path.exists(self.image_dir_path)
                 and os.path.exists(self.label_dir_path)):
@@ -56,7 +60,7 @@ class Yolov8Export(IYolov8Export):
             print('Something wrong happened!')
             return False
 
-    def save_frame(self, frame, predicted_frames, cv2, labels_and_boxes):
+    def save_frame(self, frame, predicted_frames, cv2, labels_and_boxes, labeled_frame=None):
         """
         See iyolov8_export.py
 
@@ -70,6 +74,13 @@ class Yolov8Export(IYolov8Export):
         cv2.imwrite(
             f'{self.image_dir_path}/{unix_time}.png',
             frame)
+
+        if labeled_frame.any():
+            os.makedirs(self.result_labeled_dir_path, exist_ok=True)
+
+            cv2.imwrite(
+                f'{self.result_labeled_dir_path}/{unix_time}.png',
+                labeled_frame)
         # Save labels and boxes
         with open(f'{self.label_dir_path}/{unix_time}.txt',
                   'w') as my_file:

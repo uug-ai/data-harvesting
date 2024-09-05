@@ -25,6 +25,7 @@ class FlatExport(IFlatExport):
         self.proj_dir = pjoin(_cur_dir, f'../../data/{name}')
         self.proj_dir = pabspath(self.proj_dir)  # normalise the link
         self.result_dir_path = None
+        self.result_labeled_dir_path = None
 
     def initialize_save_dir(self):
         """
@@ -36,6 +37,9 @@ class FlatExport(IFlatExport):
         self.result_dir_path = pjoin(self.proj_dir, f'{self._var.DATASET_FORMAT}-v{self._var.DATASET_VERSION}')
         os.makedirs(self.result_dir_path, exist_ok=True)
 
+        self.result_labeled_dir_path = pjoin(self.proj_dir,
+                                             f'{self._var.DATASET_FORMAT}-v{self._var.DATASET_VERSION}-labeled')
+
         if os.path.exists(self.result_dir_path):
             print('Successfully initialize save directory!')
             return True
@@ -43,7 +47,7 @@ class FlatExport(IFlatExport):
             print('Something wrong happened!')
             return False
 
-    def save_frame(self, frame, predicted_frames, cv2, labels_and_boxes):
+    def save_frame(self, frame, predicted_frames, cv2, labels_and_boxes, labeled_frame=None):
         """
         See iflat_export.py
 
@@ -57,6 +61,13 @@ class FlatExport(IFlatExport):
         cv2.imwrite(
             f'{self.result_dir_path}/{unix_time}.png',
             frame)
+
+        if labeled_frame.any():
+            os.makedirs(self.result_labeled_dir_path, exist_ok=True)
+
+            cv2.imwrite(
+                f'{self.result_labeled_dir_path}/{unix_time}.png',
+                labeled_frame)
         # Save labels and boxes
         with open(f'{self.result_dir_path}/{unix_time}.txt',
                   'w') as my_file:
