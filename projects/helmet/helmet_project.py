@@ -27,8 +27,8 @@ class HelmetProject(BaseProject, IHelmetProject):
         super().__init__()
         self._config = self.__read_config__(config_path)
         self.temp_path = self._config.get('temp')
-        self.min_width = int(self._config.get('min_width')) if self._config.get('min_width') else 0
-        self.min_height = int(self._config.get('min_height')) if self._config.get('min_height') else 0
+        self.min_width = int(self._config.get('min_width', '0'))
+        self.min_height = int(self._config.get('min_height', '0'))
         self.models, self.models_allowed_classes = self.connect_models()
         self.mapping = self.class_mapping(self.models)
         self.create_proj_save_dir()
@@ -83,7 +83,7 @@ class HelmetProject(BaseProject, IHelmetProject):
         result = []
 
         # Iterate through each class index in model_classes[0]
-        for i, class_index in enumerate(model_classes[0]):
+        for class_index in model_classes[0]:
             class_name = model_names[0][class_index]  # Get the class name from the first model
 
             # Create a list to store the mapping for this class
@@ -140,6 +140,6 @@ class HelmetProject(BaseProject, IHelmetProject):
         if not models:
             raise ModuleNotFoundError('Model not found!')
 
-        print(f'2. Using device: {self.device}')
-        print(f"3. Using {len(models)} models: {[model_name for model_name in self._config.get('models')]}")
+        print(f'1. Using device: {self.device}')
+        print(f"2. Using {len(models)} models: {[model_name for model_name in self._config.get('models')]}")
         return models, models_allowed_classes

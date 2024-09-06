@@ -225,6 +225,7 @@ class HarvestService(IHarvestService):
             if condition_met:
                 self.predicted_frames = self.export.save_frame(frame, self.predicted_frames, cv2, labels_and_boxes, labeled_frame)
                 skip_frames_counter = self._var.FRAMES_SKIP_AFTER_DETECT
+                print(f'5.3. Done, skipping the next {self._var.FRAMES_SKIP_AFTER_DETECT} frames')
             print(f'Currently in frame: {self.frame_number}')
         self.frame_number += 1
         return skip_frames_counter
