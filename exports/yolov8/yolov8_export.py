@@ -75,7 +75,7 @@ class Yolov8Export(IYolov8Export):
             f'{self.image_dir_path}/{unix_time}.png',
             frame)
 
-        if labeled_frame.any():
+        if labeled_frame is not None:
             os.makedirs(self.result_labeled_dir_path, exist_ok=True)
 
             cv2.imwrite(

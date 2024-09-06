@@ -44,7 +44,7 @@ class BaseProject(IBaseProject):
         _cur_dir = pdirname(pabspath(__file__))
         self.proj_dir = pjoin(_cur_dir, f'../data/{self.name}')
         self.proj_dir = pabspath(self.proj_dir)  # normalise the link
-        print(f'1. Created/Found project folder under {self.proj_dir} path')
+        print(f'3. Created/Found project folder under {self.proj_dir} path')
 
     def connect_models(self):
         """
