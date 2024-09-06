@@ -79,7 +79,7 @@ class IHarvestService(ABC):
         pass
 
     @abstractmethod
-    def get_frame(self, cap, skip_frames_counter):
+    def __get_frame__(self, cap, skip_frames_counter):
         """
         Retrieves the next frame from the video capture object, potentially skipping frames.
 
@@ -94,7 +94,7 @@ class IHarvestService(ABC):
         pass
 
     @abstractmethod
-    def predict_frame(self, frame, skip_frames_counter):
+    def __predict_frame__(self, frame, skip_frames_counter):
         """
         Predict input frame.
 

@@ -137,7 +137,7 @@ def __transform_labels__(cropped_frame, cropped_coordinate, combined_results):
         combined_results: List of results detected by models.
     """
     labels_and_boxes = ''
-    frame_width, frame_height = cropped_frame.shape[:2]
+    frame_height, frame_width = cropped_frame.shape[:2]
 
     for _, xyxy, cls, conf in combined_results:
         x1, y1, x2, y2 = xyxy[0]

@@ -169,13 +169,13 @@ class HarvestService(IHarvestService):
 
             # Create save dir and yaml file
             success = self.export.initialize_save_dir()
-            if success and self._var.DATASET_FORMAT == 'roboflow':
+            if success and (self._var.DATASET_FORMAT == 'yolov8'):
                 self.export.create_yaml(self.project)
 
             while (self.predicted_frames < self._var.MAX_NUMBER_OF_PREDICTIONS) and (
                     self.frame_number < self.max_frame_number):
                 # Read the frame from the video-capture.
-                success, frame, skip_frames_counter = self.get_frame(video, skip_frames_counter)
+                success, frame, skip_frames_counter = self.__get_frame__(video, skip_frames_counter)
                 # Increment frame number after processing
                 self.frame_number += 1
 
@@ -186,7 +186,7 @@ class HarvestService(IHarvestService):
                     continue
 
                 # Predict frame
-                skip_frames_counter = self.predict_frame(
+                skip_frames_counter = self.__predict_frame__(
                     frame,
                     skip_frames_counter)
             # Free all resources
@@ -194,7 +194,7 @@ class HarvestService(IHarvestService):
 
         return self.export.result_dir_path
 
-    def get_frame(self, cap: cv2.VideoCapture, skip_frames_counter):
+    def __get_frame__(self, cap: cv2.VideoCapture, skip_frames_counter):
         """
         See iharvest_service.py
 
@@ -212,7 +212,7 @@ class HarvestService(IHarvestService):
 
         return True, frame, skip_frames_counter
 
-    def predict_frame(self, frame, skip_frames_counter):
+    def __predict_frame__(self, frame, skip_frames_counter):
         """
         See iharvest_service.py
 

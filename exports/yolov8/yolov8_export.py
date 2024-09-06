@@ -92,12 +92,12 @@ class Yolov8Export(IYolov8Export):
     def create_yaml(self, project):
         """
         Create YAML configuration file with DATASET_FORMAT format.
-        As convention, class names of YAML file is configured based on model2
+        As convention, class names of YAML file is configured based on the first model
 
         Returns:
             None
         """
-        model = project.model2 if project.model2 else project.model
+        model = project.models[0]
 
         label_names = [name for name in list(model.names.values())]
         with open(self.yaml_path, 'w') as my_file:
