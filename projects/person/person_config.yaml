@@ -1,0 +1,8 @@
+models:
+ - yolov8n.pt
+allowed_classes:
+ - [0]
+
+number_of_persons: 1
+
+temp: "./data/video.mp4" # System will temporarily download video from Integration platform (s3, roboflow) to this path to process
