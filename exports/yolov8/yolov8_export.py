@@ -104,5 +104,6 @@ class Yolov8Export(IYolov8Export):
             content = 'names:\n'
             for name in label_names:
                 content += f'- {name}\n'  # class mapping for helmet detection project
-            content += f'nc: {len(label_names)}'
+            content += f'path: ./\n'
+            content += f'train: ./images\n'
             my_file.write(content)
