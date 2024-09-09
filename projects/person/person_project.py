@@ -46,7 +46,7 @@ class PersonProject(BaseProject, IPersonProject):
         person_model0 = 0
 
         number_of_persons = 0
-        for i in range(1, len(total_results[0].boxes)):
+        for i in range(0, len(total_results[0].boxes)):
             box = total_results[0].boxes[i]
             if box.cls == person_model0:
                 number_of_persons += 1
