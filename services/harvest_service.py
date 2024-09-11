@@ -190,6 +190,7 @@ class HarvestService(IHarvestService):
                     frame,
                     skip_frames_counter)
             # Free all resources
+            self.project.reset_models()
             cv2.destroyAllWindows()
 
         return self.export.result_dir_path
