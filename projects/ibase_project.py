@@ -40,3 +40,37 @@ class IBaseProject(ABC):
         Create project save directory after initializing the project.
         """
         pass
+
+    @abstractmethod
+    def __read_config__(self, path):
+        """
+        Read project's configuration file.
+
+        Returns:
+            tuple: Configuration file in dictionary format.
+
+        Raises:
+            TypeError: If the models cannot be loaded.
+        """
+        pass
+
+    @abstractmethod
+    def __connect_models__(self):
+        """
+        Initializes the YOLO models and connects them to the appropriate device (CPU or GPU).
+
+        Returns:
+            tuple: A tuple containing two YOLO models.
+
+        Raises:
+            ModuleNotFoundError: If the models cannot be loaded.
+        """
+        pass
+
+    @abstractmethod
+    def reset_models(self):
+        """
+        Reset model after processing video to avoid memory allocation error when the upcoming video comes in with
+        different resolution.
+        """
+        pass

@@ -6,7 +6,11 @@ from os.path import (
 )
 from projects.ibase_project import IBaseProject
 from utils.VariableClass import VariableClass
+from ultralytics import YOLO
+
 import yaml
+import os
+import torch
 
 
 class BaseProject(IBaseProject):
@@ -24,6 +28,7 @@ class BaseProject(IBaseProject):
         self.proj_dir = None
         self.mapping = None
         self.device = None
+        self.models = []
 
     def condition_func(self, total_results):
         """
@@ -59,6 +64,9 @@ class BaseProject(IBaseProject):
         raise NotImplemented('Should override this!!!')
 
     def __read_config__(self, path):
+        """
+        See ibase_project.py
+        """
         with open(path, 'r') as file:
             config = yaml.safe_load(file)
 
@@ -72,3 +80,27 @@ class BaseProject(IBaseProject):
 
         raise TypeError('Error while reading configuration file, '
                         'make sure models and allowed_classes have the same size')
+
+    def __connect_models__(self):
+        """
+        See ibase_project.py
+        """
+        _cur_dir = os.getcwd()
+        # initialise the yolo model, additionally use the device parameter to specify the device to run the model on.
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        _cur_dir = pdirname(pabspath(__file__))
+        model_dir = pjoin(_cur_dir, f'../models')
+        model_dir = pabspath(model_dir)  # normalise the link
+
+        models = []
+        for model_name in self._config.get('models'):
+            model = YOLO(pjoin(model_dir, model_name)).to(self.device)
+            models.append(model)
+
+        return models
+
+    def reset_models(self):
+        """
+        See ibase_project.py
+        """
+        self.models = self.__connect_models__()

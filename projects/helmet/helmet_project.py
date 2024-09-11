@@ -1,16 +1,5 @@
-from os.path import (
-    join as pjoin,
-    dirname as pdirname,
-    abspath as pabspath
-)
-
-from ultralytics import YOLO
-
 from projects.base_project import BaseProject
 from projects.helmet.ihelmet_project import IHelmetProject
-
-import os
-import torch
 
 config_path = './projects/helmet/helmet_config.yaml'
 
@@ -117,24 +106,14 @@ class HelmetProject(BaseProject, IHelmetProject):
         Initializes the YOLO models and connects them to the appropriate device (CPU or GPU).
 
         Returns:
-            tuple: A tuple containing two YOLO models.
+            models: A tuple containing two YOLO models.
+            models_allowed_classes: List of corresponding allowed classes for each model.
 
         Raises:
             ModuleNotFoundError: If the models cannot be loaded.
         """
 
-        _cur_dir = os.getcwd()
-        # initialise the yolo model, additionally use the device parameter to specify the device to run the model on.
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        _cur_dir = pdirname(pabspath(__file__))
-        model_dir = pjoin(_cur_dir, f'../../models')
-        model_dir = pabspath(model_dir)  # normalise the link
-
-        models = []
-        for model_name in self._config.get('models'):
-            model = YOLO(pjoin(model_dir, model_name)).to(self.device)
-            models.append(model)
-
+        models = self.__connect_models__()
         models_allowed_classes = self._config.get('allowed_classes')
 
         if not models:
