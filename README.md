@@ -56,7 +56,8 @@ This project contains several key components responsible for different stages of
   - Manages cloud platform interactions, specifically uploading and downloading dataset.
   - After the predictions are processed and exported to dedicated format, this module handles the uploading of the final dataset, currently have:
     - `s3`: Any S3 compatible platform such as wasabi,... You need to provide the following necessary variables in `.env` file under `S3 parameters`: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET`.
-    - `roboflow`: common platform for storing and managing deep learning dataset [see more](https://app.roboflow.com/). You need to provide the following necessary variables in `.env` file under `Roboflow parameters`: `RBF_API_KEY`, `RBF_WORKSPACE`, `RBF_PROJECT`.
+    - `roboflow`: common platform for storing and managing deep learning dataset [Learn more](https://app.roboflow.com/). You need to provide the following necessary variables in `.env` file under `Roboflow parameters`: `RBF_API_KEY`, `RBF_WORKSPACE`, `RBF_PROJECT`.
+    - For more information about `.env` parameter, see [.env parameters](#4-env-parameters)
 - #### `services/`:
   - Contains the core logic for the harvesting service.
   - Manages tasks such as ejecting other components, reads keys the message broker and from your vault, extracting frames from videos, evaluating video content, and deleting media after it’s processed.
