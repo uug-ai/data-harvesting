@@ -12,8 +12,8 @@ Automated dataset harvesting involves using algorithms and tools to continuously
 
 ## 📚 Table of Contents
 
-1. [Introduction](#introduction)
-2. [What's in this project](#whats-in-this-project)
+1. [Introduction](#1-introduction)
+2. [What's in this project](#2-whats-in-this-project)
     - [Folder Structure](#folder-structure)
         - [`models/`](#models-folder)
         - [`projects/`](#projects-folder)
@@ -21,8 +21,8 @@ Automated dataset harvesting involves using algorithms and tools to continuously
         - [`integrations/`](#integrations-folder)
         - [`services/`](#services-folder)
     - [Interesting Files](#interesting-files)
-3. [Getting Started](#getting-started)
-4. [.env parameters](#env-parameters)
+3. [Getting Started](#3-getting-started)
+4. [.env parameters](#4-env-parameters)
 
 ---
 ## 1. Introduction
